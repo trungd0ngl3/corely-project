@@ -4,16 +4,18 @@ import com.corely.corely_backend.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
 @Entity
 @Table(name = "users")
-@Getter @Setter
+@Getter
+@Setter
 public class User extends BaseEntity {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(unique = true, nullable = false)
@@ -24,6 +26,8 @@ public class User extends BaseEntity {
 
     private String fullName;
     private String phone;
+
+    LocalDate dateOfBirth;
 
     @Enumerated(EnumType.STRING)
     private Role role;

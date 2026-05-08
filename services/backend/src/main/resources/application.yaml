@@ -4,7 +4,7 @@ spring:
 
   # 1. Cấu hình Database (PostgreSQL)
   datasource:
-    # Nếu có biến DB_HOST truyền vào thì dùng, không thì mặc định là localhost
+    # Nếu có biến DB_HOST thì dùng, mặc định là localhost
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:corely_db}
     username: ${DB_USER:corely_admin}
     password: ${DB_PASSWORD:supersecretpassword}
@@ -13,13 +13,11 @@ spring:
   # 2. Cấu hình JPA / Hibernate
   jpa:
     hibernate:
-      # update: Tự động cập nhật bảng nếu Entity thay đổi (Chỉ dùng cho môi trường Dev)
-      # Khi lên Production, hãy đổi thành 'validate' và dùng Flyway/Liquibase
       ddl-auto: update
-    show-sql: true # In câu lệnh SQL ra console để dễ debug
+    show-sql: true
     properties:
       hibernate:
-        format_sql: true # Format SQL cho dễ đọc
+        format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
   # 3. Cấu hình Cache & Giỏ hàng (Redis)
@@ -27,7 +25,13 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
-      # password: ${REDIS_PASSWORD:} # Bỏ comment nếu Redis của bạn có cài password
+
+
+jwt:
+  signer-key: "4XGd^ZFYu$#w=%O(&GXJk#TjeavPg?vb^y8.%SDTkI("
+  valid-duration: 3600 #sec
+  refreshable-duration: 360000 #sec
+
 
 # Cấu hình log level để theo dõi ứng dụng
 logging:
