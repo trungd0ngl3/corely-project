@@ -1,11 +1,11 @@
 package com.corely.corely_backend.entity;
 
-import com.corely.corely_backend.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -30,7 +30,7 @@ public class User extends BaseEntity {
     LocalDate dateOfBirth;
 
     @Enumerated(EnumType.STRING)
-    private Role role;
+    private Set<Role> roles;
 
     private Boolean isActive = true;
 

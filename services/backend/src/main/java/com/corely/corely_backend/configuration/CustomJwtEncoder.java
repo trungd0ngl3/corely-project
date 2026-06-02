@@ -18,7 +18,11 @@ public class CustomJwtEncoder implements JwtDecoder {
 
     @Override
     public Jwt decode(String token) throws JwtException {
+        try{
 
+        }catch (Exception e){
+            throw new JwtException("Invalid token");
+        }
         return null;
     }
 }

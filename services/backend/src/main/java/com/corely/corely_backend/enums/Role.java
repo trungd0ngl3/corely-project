@@ -1,7 +1,7 @@
 package com.corely.corely_backend.enums;
 
 public enum Role {
-    USER,
-    ADMIN,
-    STAFF
+    ROLE_USER,
+    ROLE_ADMIN,
+    ROLE_STAFF
 }
