@@ -6,16 +6,18 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, UUID> {
-    // Lấy danh sách sản phẩm đang bán
+    Optional<Product> findBySlug(String slug);
+
+    boolean existsBySlug(String slug);
+
+    Page<Product> findByStoreIdAndIsActiveTrue(UUID storeId, Pageable pageable);
+
     Page<Product> findByIsActiveTrue(Pageable pageable);
 
-    // Tìm sản phẩm theo Category Slug (Ví dụ: /category/cpu-intel)
-    Page<Product> findByCategorySlugAndIsActiveTrue(String slug, Pageable pageable);
-
-    // Tìm chi tiết sản phẩm theo Slug
-    Product findBySlugAndIsActiveTrue(String slug);
+    Page<Product> findByCategoryIdAndIsActiveTrue(UUID categoryId, Pageable pageable);
 }

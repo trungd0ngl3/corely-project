@@ -19,7 +19,19 @@ public enum ErrorCode {
     UNAUTHENTICATED(1006, "Unauthenticated", HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED(1007, "User is not have permission", HttpStatus.FORBIDDEN),
     DOB_INVALID(1008, "Age must at least {min}", HttpStatus.BAD_REQUEST),
+    USER_NOT_FOUND(1009, "User not found", HttpStatus.NOT_FOUND),
+    STORE_NOT_FOUND(1010, "Store not found", HttpStatus.NOT_FOUND),
+    PRODUCT_NOT_FOUND(1011, "Product not found", HttpStatus.NOT_FOUND),
+    ORDER_NOT_FOUND(1012, "Order not found", HttpStatus.NOT_FOUND),
+    INVALID_VOUCHER(1013, "Invalid voucher", HttpStatus.BAD_REQUEST),
+    STORE_EXISTED(1014, "Store existed", HttpStatus.BAD_REQUEST),
+    CART_EMPTY(1015, "Cart is empty", HttpStatus.BAD_REQUEST),
+    OUT_OF_STOCK(1016, "Product out of stock", HttpStatus.BAD_REQUEST),
+    USER_NOT_EXISTED(1017, "User not existed", HttpStatus.NOT_FOUND),
+    PAYMENT_NOT_FOUND(1018, "Payment not found", HttpStatus.NOT_FOUND),
+    INVALID_SIGNATURE(1019, "Invalid signature", HttpStatus.BAD_REQUEST),
     ;
+
     int code;
     String message;
     HttpStatusCode statusCode;
