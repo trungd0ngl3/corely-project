@@ -6,6 +6,8 @@ import jakarta.persistence.ManyToMany;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.util.Set;
@@ -14,6 +16,8 @@ import java.util.Set;
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class Role {
     @Id

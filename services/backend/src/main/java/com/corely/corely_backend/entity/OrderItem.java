@@ -1,26 +1,35 @@
 package com.corely.corely_backend.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Entity
 @Table(name = "order_items")
-@Getter @Setter
-public class OrderItem {
+@Getter
+@Setter
+public class OrderItem extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id")
+    private Product product;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "variant_id")
+    private ProductVariant variant;
 
     private Integer quantity;
 
-    private BigDecimal unitPrice;
-
-    @ManyToOne
-    private Product product;
-
-    @ManyToOne
-    @JoinColumn(name = "order_id")
-    private Order order;
+    private BigDecimal price; // Price at the time of order
 }

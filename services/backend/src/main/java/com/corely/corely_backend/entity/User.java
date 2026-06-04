@@ -2,6 +2,7 @@ package com.corely.corely_backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -12,28 +13,38 @@ import java.util.UUID;
 @Table(name = "users")
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class User extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    UUID id;
 
     @Column(unique = true, nullable = false)
-    private String email;
+    String email;
 
-    @Column(nullable = false)
-    private String passwordHash;
+    String password;
 
-    private String fullName;
-    private String phone;
+    String fullName;
+    String phone;
+    String avatarUrl;
 
     LocalDate dateOfBirth;
 
-    @Enumerated(EnumType.STRING)
-    private Set<Role> roles;
+    // OAuth2 fields
+    String provider; // "local", "google", "facebook"
+    String providerId;
 
-    private Boolean isActive = true;
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_name"))
+    Set<Role> roles;
+
+    @Builder.Default
+    Boolean isActive = true;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Address> addresses;
+    List<Address> addresses;
 }
