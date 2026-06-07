@@ -1,32 +1,26 @@
-const categories = [
-    { name: "CPU", icon: "⚡", desc: "Bộ xử lý" },
-    { name: "GPU", icon: "🎮", desc: "Card đồ họa" },
-    { name: "RAM", icon: "🧠", desc: "Bộ nhớ" },
-    { name: "SSD", icon: "💾", desc: "Ổ lưu trữ" },
-    { name: "Mainboard", icon: "🔧", desc: "Bo mạch chủ" },
-    { name: "PSU", icon: "🔌", desc: "Nguồn máy tính" },
-    { name: "Case", icon: "🖥️", desc: "Vỏ máy tính" },
-    { name: "Tản nhiệt", icon: "❄️", desc: "Cooling" },
-];
+import Link from "next/link";
+import { CATEGORIES } from "@/lib/mock-data";
 
-export default function CategoryGrid() {
+export function CategoryGrid() {
     return (
-        <section className="max-w-7xl mx-auto px-4 py-12">
-            <h2 className="text-2xl font-bold text-foreground mb-8 text-center">Danh mục linh kiện</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
-                {categories.map((cat) => (
-                    <a
-                        key={cat.name}
-                        href="#"
-                        className="group flex flex-col items-center gap-3 p-4 bg-surface rounded-xl border border-border hover:border-primary/50 hover:bg-surface-hover transition-all duration-200"
-                    >
-                        <span className="text-3xl group-hover:scale-110 transition-transform duration-200">{cat.icon}</span>
-                        <div className="text-center">
-                            <p className="text-sm font-semibold text-foreground">{cat.name}</p>
-                            <p className="text-xs text-muted">{cat.desc}</p>
-                        </div>
-                    </a>
-                ))}
+        <section className="py-16 bg-surface">
+            <div className="container-max">
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8">
+                    {CATEGORIES.map((cat) => (
+                        <Link
+                            key={cat.name}
+                            href={cat.href}
+                            className="group flex flex-col items-center justify-center rounded-2xl bg-surface-container-lowest p-6 shadow-level-1 transition-all hover:shadow-level-2 hover:-translate-y-1"
+                        >
+                            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-surface-container text-primary-container group-hover:bg-primary-container group-hover:text-white transition-colors">
+                                <cat.icon className="h-7 w-7" />
+                            </div>
+                            <span className="mt-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant group-hover:text-primary-container transition-colors">
+                                {cat.name}
+                            </span>
+                        </Link>
+                    ))}
+                </div>
             </div>
         </section>
     );

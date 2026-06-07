@@ -1,22 +1,15 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
-import Header from "../components/layout/Header";
-import Footer from "../components/layout/Footer";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: "--font-sans",
 });
 
 export const metadata: Metadata = {
-  title: "Corely - Linh kiện máy tính & PC Build sẵn",
-  description: "Chuyên cung cấp linh kiện máy tính chính hãng, PC gaming build sẵn chất lượng cao với giá tốt nhất. CPU, GPU, RAM, SSD, Mainboard và nhiều hơn nữa.",
+  title: "Corely | High-Performance Computing Hardware",
+  description: "Engineered for high-performance computing. Precise, powerful, and dependable hardware for professionals and enthusiasts.",
 };
 
 export default function RootLayout({
@@ -25,14 +18,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="vi"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
+    <html lang="en" className={`${inter.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col bg-background text-on-background">
+        {children}
       </body>
     </html>
   );

@@ -1,21 +1,33 @@
-import HeroBanner from "../components/home/HeroBanner";
-import CategoryGrid from "../components/home/CategoryGrid";
-import FlashSale from "../components/home/FlashSale";
-import FeaturedProducts from "../components/home/FeaturedProducts";
-import PrebuiltPCSection from "../components/home/PrebuiltPCSection";
-import BrandShowcase from "../components/home/BrandShowcase";
-import Newsletter from "../components/home/Newsletter";
+import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
+import { HeroSection } from "@/components/home/HeroSection";
+import { CategoryGrid } from "@/components/home/CategoryGrid";
+import { FlashSale } from "@/components/home/FlashSale";
+import { FeaturedProducts } from "@/components/home/FeaturedProducts";
+import { PromoBanner } from "@/components/home/PromoBanner";
+import { BestSellerCarousel } from "@/components/home/BestSellerCarousel";
+import { BrandSection } from "@/components/home/BrandSection";
+import { WhyChooseUs } from "@/components/home/WhyChooseUs";
+import { Newsletter } from "@/components/home/Newsletter";
 
-export default function Home() {
+export default function HomePage() {
   return (
-    <>
-      <HeroBanner />
-      <CategoryGrid />
-      <FlashSale />
-      <FeaturedProducts />
-      <PrebuiltPCSection />
-      <BrandShowcase />
-      <Newsletter />
-    </>
+    <div className="flex min-h-screen flex-col">
+      <Header />
+
+      <main className="flex-1">
+        <HeroSection />
+        <CategoryGrid />
+        <FlashSale />
+        <FeaturedProducts />
+        <PromoBanner />
+        <BestSellerCarousel />
+        <BrandSection />
+        <WhyChooseUs />
+        <Newsletter />
+      </main>
+
+      <Footer />
+    </div>
   );
 }
