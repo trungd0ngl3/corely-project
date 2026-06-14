@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Heart, ShoppingCart, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 interface ProductCardProps {
     id: string;
@@ -18,6 +19,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({
+    id,
     name,
     price,
     originalPrice,
@@ -41,7 +43,7 @@ export function ProductCard({
             className
         )}>
             {/* Image Container */}
-            <div className="relative aspect-square overflow-hidden rounded-xl bg-surface-container-low">
+            <Link href={`/products/${id}`} className="relative aspect-square overflow-hidden rounded-xl bg-surface-container-low block">
                 <Image
                     src={image}
                     alt={name}
@@ -56,16 +58,18 @@ export function ProductCard({
                         Flash Sale
                     </div>
                 )}
-            </div>
+            </Link>
 
             {/* Content */}
             <div className="mt-4 flex flex-1 flex-col">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">
                     {brand}
                 </span>
-                <h3 className="mt-1 line-clamp-2 text-sm font-semibold text-on-surface group-hover:text-primary">
-                    {name}
-                </h3>
+                <Link href={`/products/${id}`}>
+                    <h3 className="mt-1 line-clamp-2 text-sm font-semibold text-on-surface group-hover:text-primary">
+                        {name}
+                    </h3>
+                </Link>
 
                 {rating !== undefined && (
                     <div className="mt-2 flex items-center gap-1">

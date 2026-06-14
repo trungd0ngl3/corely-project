@@ -5,6 +5,7 @@ import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import Link from "next/link";
 
 export function CartSummary() {
     const { totalPrice, items } = useCart();
@@ -56,9 +57,11 @@ export function CartSummary() {
                 </div>
             </div>
 
-            <Button className="w-full h-12 text-base font-semibold bg-[#2563EB] hover:bg-blue-700 text-white">
-                Proceed To Checkout
-            </Button>
+            <Link href="/checkout" className="w-full">
+                <Button className="w-full h-12 text-base font-semibold bg-[#2563EB] hover:bg-blue-700 text-white">
+                    Proceed To Checkout
+                </Button>
+            </Link>
 
             <div className="mt-6 space-y-3 text-sm text-muted-foreground">
                 <p className="flex items-center"><span className="text-green-500 mr-2">✓</span> Free Shipping</p>
