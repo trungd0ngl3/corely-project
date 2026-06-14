@@ -11,7 +11,7 @@ interface ProductCardProps {
     originalPrice?: number;
     image: string;
     brand: string;
-    rating: number;
+    rating?: number;
     isFlashSale?: boolean;
     soldPercentage?: number;
     className?: string;
@@ -67,13 +67,15 @@ export function ProductCard({
                     {name}
                 </h3>
 
-                <div className="mt-2 flex items-center gap-1">
-                    <div className="flex items-center text-yellow-500">
-                        <Star className="h-3 w-3 fill-current" />
-                        <span className="ml-1 text-xs font-bold text-on-surface">{rating}</span>
+                {rating !== undefined && (
+                    <div className="mt-2 flex items-center gap-1">
+                        <div className="flex items-center text-yellow-500">
+                            <Star className="h-3 w-3 fill-current" />
+                            <span className="ml-1 text-xs font-bold text-on-surface">{rating}</span>
+                        </div>
+                        <span className="text-[10px] text-on-surface-variant/40">(123)</span>
                     </div>
-                    <span className="text-[10px] text-on-surface-variant/40">(123)</span>
-                </div>
+                )}
 
                 <div className="mt-auto pt-4">
                     <div className="flex flex-wrap items-baseline gap-2">

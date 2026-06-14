@@ -19,7 +19,7 @@ export function ProductActions({ id, name, price, image, brand, stock }: Product
     const addItem = useCart((s) => s.addItem);
 
     const handleAddToCart = () => {
-        addItem({ id, name, price, image, brand, quantity });
+        addItem({ id, name, price, image, brand }, quantity);
     };
 
     return (
