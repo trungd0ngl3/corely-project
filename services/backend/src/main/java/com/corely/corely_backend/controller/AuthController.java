@@ -1,11 +1,8 @@
 package com.corely.corely_backend.controller;
 
-import com.corely.corely_backend.dto.request.IntrospectRequest;
-import com.corely.corely_backend.dto.request.LogoutRequest;
-import com.corely.corely_backend.dto.request.RefreshTokenRequest;
-import com.corely.corely_backend.dto.request.UserCreationRequest;
+import com.corely.corely_backend.dto.request.*;
 import com.corely.corely_backend.dto.response.ApiResponse;
-import com.corely.corely_backend.dto.response.AuthenticationResponse;
+import com.corely.corely_backend.dto.response.AuthenticateResponse;
 import com.corely.corely_backend.dto.response.IntrospectResponse;
 import com.corely.corely_backend.service.AuthenticationService;
 import com.corely.corely_backend.service.UserService;
@@ -34,9 +31,9 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    ApiResponse<AuthenticationResponse> login(@RequestParam String email, @RequestParam String password) {
-        var result = authenticationService.authenticate(email, password);
-        return ApiResponse.<AuthenticationResponse>builder()
+    ApiResponse<AuthenticateResponse> login(@RequestBody AuthenticateRequest request) {
+        var result = authenticationService.authenticate(request);
+        return ApiResponse.<AuthenticateResponse>builder()
                 .code(1000)
                 .result(result)
                 .build();
@@ -52,10 +49,10 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    ApiResponse<AuthenticationResponse> refresh(@RequestBody RefreshTokenRequest request)
+    ApiResponse<AuthenticateResponse> refresh(@RequestBody RefreshTokenRequest request)
             throws ParseException, JOSEException {
         var result = authenticationService.refreshToken(request.getToken());
-        return ApiResponse.<AuthenticationResponse>builder()
+        return ApiResponse.<AuthenticateResponse>builder()
                 .code(1000)
                 .result(result)
                 .build();
