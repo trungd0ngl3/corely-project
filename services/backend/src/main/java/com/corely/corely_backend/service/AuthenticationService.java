@@ -1,8 +1,9 @@
 package com.corely.corely_backend.service;
 
+import com.corely.corely_backend.dto.request.AuthenticateRequest;
 import com.corely.corely_backend.dto.request.IntrospectRequest;
 import com.corely.corely_backend.dto.request.LogoutRequest;
-import com.corely.corely_backend.dto.response.AuthenticationResponse;
+import com.corely.corely_backend.dto.response.AuthenticateResponse;
 import com.corely.corely_backend.dto.response.IntrospectResponse;
 import com.corely.corely_backend.entity.InvalidatedToken;
 import com.corely.corely_backend.entity.User;
@@ -63,18 +64,18 @@ public class AuthenticationService {
         return IntrospectResponse.builder().isValid(isValid).build();
     }
 
-    public AuthenticationResponse authenticate(String email, String password) {
-        User user = userRepository.findByEmail(email)
+    public AuthenticateResponse authenticate(AuthenticateRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-        if (!passwordEncoder.matches(password, user.getPassword())) {
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
         String token = generateToken(user);
-        return AuthenticationResponse.builder()
+        return AuthenticateResponse.builder()
                 .token(token)
-                .authenticated(true)
+                .isAuth(true)
                 .build();
     }
 
@@ -125,7 +126,7 @@ public class AuthenticationService {
         return signedJWT;
     }
 
-    public AuthenticationResponse refreshToken(String token) throws JOSEException, ParseException {
+    public AuthenticateResponse refreshToken(String token) throws JOSEException, ParseException {
         SignedJWT signedJWT = verifyToken(token, true);
 
         String jit = signedJWT.getJWTClaimsSet().getJWTID();
@@ -141,9 +142,9 @@ public class AuthenticationService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         String newToken = generateToken(user);
-        return AuthenticationResponse.builder()
+        return AuthenticateResponse.builder()
                 .token(newToken)
-                .authenticated(true)
+                .isAuth(true)
                 .build();
     }
 
