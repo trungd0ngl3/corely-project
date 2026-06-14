@@ -10,11 +10,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.time.Instant;
@@ -24,7 +22,7 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
-public class CustomJwtEncoder implements JwtDecoder {
+public class CustomJwtDecoder implements JwtDecoder {
 
     InvalidatedTokenRepository invalidatedTokenRepository;
 
@@ -37,6 +35,15 @@ public class CustomJwtEncoder implements JwtDecoder {
         try {
             SignedJWT signedJWT = SignedJWT.parse(token);
 
+            String algorithm =
+                    signedJWT.getHeader()
+                            .getAlgorithm()
+                            .getName();
+
+            if (!"HS512".equals(algorithm)) {
+                throw new JwtException("Unsupported algorithm");
+            }
+
             JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes(StandardCharsets.UTF_8));
             boolean verified = signedJWT.verify(verifier);
 
@@ -45,6 +52,12 @@ public class CustomJwtEncoder implements JwtDecoder {
             }
 
             JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
+            // Check issuer
+            String issuer = claimsSet.getIssuer();
+
+            if (!"corely-backend".equals(issuer)) {
+                throw new JwtException("Invalid issuer");
+            }
 
             // Check expiration
             Date expirationTime = claimsSet.getExpirationTime();

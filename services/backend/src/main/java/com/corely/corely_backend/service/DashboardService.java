@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class DashboardService {
-
         private final OrderRepository orderRepository;
         private final ProductRepository productRepository;
         private final UserRepository userRepository;

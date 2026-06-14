@@ -11,8 +11,8 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   datasource:
     url: jdbc:postgresql://localhost:5432/corely_db
-    username: postgres
-    password: postgres
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
   data:
     redis:
@@ -29,34 +29,36 @@ spring:
       client:
         registration:
           google:
-            client-id: ${GOOGLE_CLIENT_ID:}
-            client-secret: ${GOOGLE_CLIENT_SECRET:}
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
             redirect-uri: "http://localhost:8080/login/oauth2/code/google"
             scope:
               - email
               - profile
-          facebook:
-            client-id: ${FACEBOOK_CLIENT_ID:}
-            client-secret: ${FACEBOOK_CLIENT_SECRET:}
-            redirect-uri: "http://localhost:8080/login/oauth2/code/facebook"
-            scope:
-              - email
-              - public_profile
-        provider:
-          google:
-            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
-            token-uri: https://www.googleapis.com/oauth2/v4/token
-            user-info-uri: https://www.googleapis.com/oauth2/v1/userinfo
-            user-name-attribute: sub
-          facebook:
-            authorization-uri: https://www.facebook.com/v12.0/dialog/oauth
-            token-uri: https://graph.facebook.com/v12.0/oauth/access_token
-            user-info-uri: https://graph.facebook.com/me?fields=id,name,email,picture
-            user-name-attribute: id
+#          facebook:
+#            client-id: ${FACEBOOK_CLIENT_ID:}
+#            client-secret: ${FACEBOOK_CLIENT_SECRET:}
+#            redirect-uri: "http://localhost:8080/login/oauth2/code/facebook"
+#            scope:
+#              - email
+#              - public_profile
+#        provider:
+#          google:
+#            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+#            token-uri: https://www.googleapis.com/oauth2/v4/token
+#            user-info-uri: https://www.googleapis.com/oauth2/v1/userinfo
+#            user-name-attribute: sub
+#          facebook:
+#            authorization-uri: https://www.facebook.com/v12.0/dialog/oauth
+#            token-uri: https://graph.facebook.com/v12.0/oauth/access_token
+#            user-info-uri: https://graph.facebook.com/me?fields=id,name,email,picture
+#            user-name-attribute: id
 
 jwt:
-  signerKey: ${JWT_SIGNER_KEY:abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkl}
+  signerKey: ${JWT_SIGNER_KEY}
   valid: 3600
+  valid-duration: 3600 #sec
+  refreshable-duration: 360000
 
 vnpay:
   tmnCode: ${VNPAY_TMN_CODE:TEST}

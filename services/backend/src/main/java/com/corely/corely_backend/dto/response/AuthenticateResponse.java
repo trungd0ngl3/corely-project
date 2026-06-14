@@ -7,7 +7,7 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @Data
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
-public class AuthenticationResponse {
+public class AuthenticateResponse {
     String token;
-    boolean authenticated;
+    boolean isAuth;
 }

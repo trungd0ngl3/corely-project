@@ -1,12 +1,20 @@
 package com.corely.corely_backend.controller;
 
+import com.corely.corely_backend.dto.request.UserCreationRequest;
+import com.corely.corely_backend.dto.request.UserUpdateRequest;
 import com.corely.corely_backend.dto.response.ApiResponse;
 import com.corely.corely_backend.dto.response.UserResponse;
 import com.corely.corely_backend.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -14,30 +22,65 @@ import java.util.List;
 @RequiredArgsConstructor
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
 @RequestMapping("/api/v1/users")
+@Log4j2
 public class UserController {
     UserService userService;
 
-    public ApiResponse<UserResponse> createUser() {
-        return null;
+    @PostMapping()
+    ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreationRequest request){
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.createUser(request))
+                .build();
     }
 
-    public ApiResponse<List<UserResponse>> getAllUsers() {
-        return null;
+    //kiểm tra người dùng có role admin
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping()
+    ApiResponse<List<UserResponse>> getUsers(){
+        //lấy thông tin người dùng từ SecurityContextHolder
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        //log thông tin
+        //log email
+        log.info("email: {}", authentication.getName());
+
+        // log các quyền hạn
+        authentication.getAuthorities().forEach(grantedAuthority ->
+                log.info(grantedAuthority.getAuthority()));
+
+        return ApiResponse.<List<UserResponse>>builder()
+                .result(userService.getUsers())
+                .build();
     }
 
-    public ApiResponse<UserResponse> getMyInfo() {
-        return null;
+    @GetMapping("/myinfo")
+    ApiResponse<UserResponse> getMyInfo(){
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.getMyInfo())
+                .build();
     }
 
-    public ApiResponse<UserResponse> getUserById(String id) {
-        return null;
+    // kiểm tra email trả về với email trong SecurityContextHolder
+    @PostAuthorize("@returnObject.email == authentication.email")
+    @GetMapping("/{userId}")
+    ApiResponse<UserResponse> getUser(@PathVariable String userId){
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.getUser(userId))
+                .build();
     }
 
-    public ApiResponse<UserResponse> updateUser(String id) {
-        return null;
+    @PutMapping("/{userId}")
+    ApiResponse<UserResponse>  updateUser(@PathVariable String userId, @RequestBody UserUpdateRequest request){
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.updateUser(userId, request))
+                .build();
     }
 
-    public ApiResponse<String> deleteUser(String id) {
-        return null;
+    @DeleteMapping("/{userId}")
+    ApiResponse<String> deleteUser(@PathVariable String userId){
+        userService.deleteUser(userId);
+        return ApiResponse.<String>builder()
+                .result("delete success")
+                .build();
     }
 }
