@@ -1,4 +1,4 @@
-package com.corely.corely_backend.dto.response;
+package com.corely.corely_backend.dto.response.auth;
 
 import com.corely.corely_backend.enums.Role;
 import lombok.Builder;

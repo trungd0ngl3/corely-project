@@ -2,7 +2,7 @@ package com.corely.corely_backend.controller;
 
 import com.corely.corely_backend.dto.request.RoleRequest;
 import com.corely.corely_backend.dto.response.ApiResponse;
-import com.corely.corely_backend.dto.response.RoleResponse;
+import com.corely.corely_backend.dto.response.auth.RoleResponse;
 import com.corely.corely_backend.service.RoleService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

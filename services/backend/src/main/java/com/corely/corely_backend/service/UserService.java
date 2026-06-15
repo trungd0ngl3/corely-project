@@ -2,7 +2,7 @@ package com.corely.corely_backend.service;
 
 import com.corely.corely_backend.dto.request.UserCreationRequest;
 import com.corely.corely_backend.dto.request.UserUpdateRequest;
-import com.corely.corely_backend.dto.response.UserResponse;
+import com.corely.corely_backend.dto.response.auth.UserResponse;
 import com.corely.corely_backend.entity.User;
 import com.corely.corely_backend.exception.AppException;
 import com.corely.corely_backend.exception.ErrorCode;

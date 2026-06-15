@@ -1,7 +1,7 @@
 package com.corely.corely_backend.service;
 
 import com.corely.corely_backend.dto.request.PermissionRequest;
-import com.corely.corely_backend.dto.response.PermissionResponse;
+import com.corely.corely_backend.dto.response.auth.PermissionResponse;
 import com.corely.corely_backend.entity.Permission;
 import com.corely.corely_backend.mapper.PermissionMapper;
 import com.corely.corely_backend.repository.PermissionRepository;

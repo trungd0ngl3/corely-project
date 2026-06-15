@@ -2,8 +2,8 @@ package com.corely.corely_backend.controller;
 
 import com.corely.corely_backend.dto.request.*;
 import com.corely.corely_backend.dto.response.ApiResponse;
-import com.corely.corely_backend.dto.response.AuthenticateResponse;
-import com.corely.corely_backend.dto.response.IntrospectResponse;
+import com.corely.corely_backend.dto.response.auth.AuthenticateResponse;
+import com.corely.corely_backend.dto.response.auth.IntrospectResponse;
 import com.corely.corely_backend.service.AuthenticationService;
 import com.corely.corely_backend.service.UserService;
 import com.nimbusds.jose.JOSEException;

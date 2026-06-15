@@ -40,15 +40,15 @@ public class CustomJwtDecoder implements JwtDecoder {
                             .getAlgorithm()
                             .getName();
 
-            if (!"HS512".equals(algorithm)) {
-                throw new JwtException("Unsupported algorithm");
+            if (!"HS512".equals(algorithm) && !"HS256".equals(algorithm)) {
+                throw new BadJwtException("Unsupported algorithm");
             }
 
             JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes(StandardCharsets.UTF_8));
             boolean verified = signedJWT.verify(verifier);
 
             if (!verified) {
-                throw new JwtException("Token signature verification failed");
+                throw new BadJwtException("Token signature verification failed");
             }
 
             JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
@@ -56,19 +56,19 @@ public class CustomJwtDecoder implements JwtDecoder {
             String issuer = claimsSet.getIssuer();
 
             if (!"corely-backend".equals(issuer)) {
-                throw new JwtException("Invalid issuer");
+                throw new BadJwtException("Invalid issuer");
             }
 
             // Check expiration
             Date expirationTime = claimsSet.getExpirationTime();
             if (expirationTime != null && expirationTime.before(new Date())) {
-                throw new JwtException("Token has expired");
+                throw new BadJwtException("Token has expired");
             }
 
             // Check if token has been invalidated (logout)
             String jwtId = claimsSet.getJWTID();
             if (jwtId != null && invalidatedTokenRepository.existsById(jwtId)) {
-                throw new JwtException("Token has been invalidated");
+                throw new BadJwtException("Token has been invalidated");
             }
 
             // Build Spring Security Jwt object
@@ -86,7 +86,7 @@ public class CustomJwtDecoder implements JwtDecoder {
             return new Jwt(token, issuedAt, expiresAt, headers, claimsSet.getClaims());
 
         } catch (ParseException | JOSEException e) {
-            throw new JwtException("Invalid JWT token: " + e.getMessage(), e);
+            throw new BadJwtException(e.getMessage(), e);
         }
     }
 }

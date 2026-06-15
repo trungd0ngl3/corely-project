@@ -3,12 +3,11 @@ package com.corely.corely_backend.controller;
 import com.corely.corely_backend.dto.request.UserCreationRequest;
 import com.corely.corely_backend.dto.request.UserUpdateRequest;
 import com.corely.corely_backend.dto.response.ApiResponse;
-import com.corely.corely_backend.dto.response.UserResponse;
+import com.corely.corely_backend.dto.response.auth.UserResponse;
 import com.corely.corely_backend.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import lombok.extern.log4j.Log4j;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Controller
+@RestController
 @RequiredArgsConstructor
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
 @RequestMapping("/api/v1/users")

@@ -17,7 +17,7 @@ public enum ErrorCode {
     PASSWORD_INVALID(1004, "Password must be at least {min} character", HttpStatus.BAD_REQUEST),
     EMAIL_NOT_EXISTED(1005, "Email not existed", HttpStatus.NOT_FOUND),
     UNAUTHENTICATED(1006, "Unauthenticated", HttpStatus.UNAUTHORIZED),
-    UNAUTHORIZED(1007, "User is not have permission", HttpStatus.FORBIDDEN),
+    UNAUTHORIZED(1007, "You do not have permission", HttpStatus.FORBIDDEN),
     DOB_INVALID(1008, "Age must at least {min}", HttpStatus.BAD_REQUEST),
     USER_NOT_FOUND(1009, "User not found", HttpStatus.NOT_FOUND),
     STORE_NOT_FOUND(1010, "Store not found", HttpStatus.NOT_FOUND),

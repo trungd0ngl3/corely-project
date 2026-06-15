@@ -35,7 +35,9 @@ public class SecurityConfig {
             "/api/stores/*/products/**",
             "/oauth2/**",
             "/login/oauth2/**",
-            "/actuator/health"
+            "/actuator/health",
+            "/products/**",
+            "/error"
     };
 
     @Bean
@@ -46,6 +48,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**", "/api/categories/**").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
@@ -54,7 +57,9 @@ public class SecurityConfig {
                                 .jwtAuthenticationConverter(jwtAuthenticationConverter()))
                         .authenticationEntryPoint(new JwtAuthenticationEntryPoint()))
                 .oauth2Login(oauth2 -> oauth2
-                        .successHandler(oAuth2AuthenticationSuccessHandler));
+                        .successHandler(oAuth2AuthenticationSuccessHandler))
+                .exceptionHandling(exceptionHandling -> exceptionHandling
+                        .authenticationEntryPoint(new JwtAuthenticationEntryPoint()));
 
         return http.build();
     }

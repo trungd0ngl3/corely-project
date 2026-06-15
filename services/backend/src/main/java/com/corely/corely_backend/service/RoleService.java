@@ -1,7 +1,7 @@
 package com.corely.corely_backend.service;
 
 import com.corely.corely_backend.dto.request.RoleRequest;
-import com.corely.corely_backend.dto.response.RoleResponse;
+import com.corely.corely_backend.dto.response.auth.RoleResponse;
 import com.corely.corely_backend.entity.Permission;
 import com.corely.corely_backend.entity.Role;
 import com.corely.corely_backend.mapper.RoleMapper;
