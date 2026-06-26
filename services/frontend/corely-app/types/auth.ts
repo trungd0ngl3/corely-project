@@ -4,6 +4,8 @@ export enum AuthProvider {
     FACEBOOK = 'FACEBOOK',
 }
 
+export type Role = "USER" | "ADMIN" | "STAFF";
+
 export interface User {
     id: string;
     email: string;
@@ -14,6 +16,7 @@ export interface User {
     emailVerified: boolean;
     dob?: string;
     phone?: string;
+    role: Role;
 }
 
 export interface LoginResponse {
