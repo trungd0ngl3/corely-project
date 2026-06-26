@@ -3,6 +3,7 @@ package com.corely.corely_backend.service;
 import com.corely.corely_backend.dto.request.UserCreationRequest;
 import com.corely.corely_backend.dto.request.UserUpdateRequest;
 import com.corely.corely_backend.dto.response.auth.UserResponse;
+import com.corely.corely_backend.entity.Role;
 import com.corely.corely_backend.entity.User;
 import com.corely.corely_backend.exception.AppException;
 import com.corely.corely_backend.exception.ErrorCode;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -90,6 +92,36 @@ public class UserService {
 
     public void deleteUser(String userId){
         userRepository.deleteById(UUID.fromString(userId));
+    }
+
+    public User processOAuth2User(String email, String name, String picture, String provider, String providerId) {
+        return userRepository.findByEmail(email)
+                .map(existingUser -> {
+                    if (existingUser.getProvider() == null) {
+                        existingUser.setProvider(provider);
+                        existingUser.setProviderId(providerId);
+                    }
+                    if (existingUser.getAvatarUrl() == null && picture != null) {
+                        existingUser.setAvatarUrl(picture);
+                    }
+                    return userRepository.save(existingUser);
+                })
+                .orElseGet(() -> {
+                    var userRole = roleRepository.findById("USER");
+                    Set<Role> roles = new HashSet<>();
+                    userRole.ifPresent(roles::add);
+
+                    User newUser = User.builder()
+                            .email(email)
+                            .fullName(name)
+                            .avatarUrl(picture)
+                            .provider(provider)
+                            .providerId(providerId)
+                            .roles(roles)
+                            .isActive(true)
+                            .build();
+                    return userRepository.save(newUser);
+                });
     }
 
     private User findUser(String id){

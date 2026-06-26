@@ -72,11 +72,43 @@ public class AuthenticationService {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
-        String token = generateToken(user);
+        return generateTokenPair(user);
+    }
+
+    public AuthenticateResponse generateTokenPair(User user) {
+        String accessToken = generateToken(user);
+        String refreshToken = generateRefreshToken(user);
         return AuthenticateResponse.builder()
-                .token(token)
+                .token(accessToken)
+                .refreshToken(refreshToken)
                 .isAuth(true)
                 .build();
+    }
+
+    private String generateRefreshToken(User user) {
+        JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS512);
+
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject(user.getEmail())
+                .issuer("corely-backend")
+                .issueTime(new Date())
+                .expirationTime(
+                        new Date(Instant.now().plus(REFRESHABLE_DURATION, ChronoUnit.SECONDS).toEpochMilli()))
+                .jwtID(UUID.randomUUID().toString())
+                .claim("scope", buildScope(user))
+                .claim("userId", user.getId().toString())
+                .claim("type", "refresh")
+                .build();
+
+        JWSObject jwsObject = new JWSObject(jwsHeader, claimsSet.toPayload());
+
+        try {
+            jwsObject.sign(new MACSigner(SIGNER_KEY.getBytes(StandardCharsets.UTF_8)));
+            return jwsObject.serialize();
+        } catch (JOSEException e) {
+            log.error("Cannot generate refresh token", e);
+            throw new RuntimeException(e);
+        }
     }
 
     public String generateToken(User user) {
@@ -141,11 +173,7 @@ public class AuthenticationService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-        String newToken = generateToken(user);
-        return AuthenticateResponse.builder()
-                .token(newToken)
-                .isAuth(true)
-                .build();
+        return generateTokenPair(user);
     }
 
     public void logout(LogoutRequest request) throws JOSEException, ParseException {
