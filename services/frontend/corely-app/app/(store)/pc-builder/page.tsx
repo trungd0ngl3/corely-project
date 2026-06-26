@@ -1,4 +1,4 @@
-import { Cpu, HardDrive, Monitor, Power, Layout, Plus, Check, AlertCircle, Info } from "lucide-react";
+import { Cpu, HardDrive, Monitor, Power, Layout, Plus, Check, AlertCircle } from "lucide-react";
 
 const BUILD_STEPS = [
     { id: "cpu", name: "Processor", icon: Cpu, required: true },

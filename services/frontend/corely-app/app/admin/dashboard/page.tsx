@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowDown, ArrowUp, DollarSign, Package, ShoppingCart, Users } from "lucide-react";
+import { ArrowUp, DollarSign, Package, ShoppingCart, Users } from "lucide-react";
 import RevenueChart from "@/components/admin/dashboard/RevenueChart";
 
 export default function AdminDashboardPage() {
@@ -8,7 +8,7 @@ export default function AdminDashboardPage() {
             <div>
                 <h1 className="text-2xl font-bold tracking-tight text-slate-900">Dashboard</h1>
                 <p className="text-sm text-slate-500 mt-1">
-                    Overview of your store's performance.
+                    {"Overview of your store's performance."}
                 </p>
             </div>
 

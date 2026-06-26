@@ -21,7 +21,7 @@ export default function OrderSuccessPage() {
                         <Package className="h-6 w-6 text-primary mb-3" />
                         <h3 className="font-bold text-on-surface mb-1">Shipping Updates</h3>
                         <p className="text-sm text-on-surface-variant">
-                            We'll send you an email with tracking information once your items ship.
+                            {"We'll"} send you an email with tracking information once your items ship.
                         </p>
                     </div>
                     <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-6 text-left">

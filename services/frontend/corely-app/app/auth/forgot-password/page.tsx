@@ -16,7 +16,6 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { toast } from "sonner";
-import axios from "axios";
 
 const forgotPasswordSchema = z.object({
     email: z.string().email({ message: "Invalid email address" }),
@@ -35,7 +34,7 @@ export default function ForgotPasswordPage() {
         },
     });
 
-    const onSubmit = async (data: ForgotPasswordValues) => {
+    const onSubmit = async () => {
         setIsLoading(true);
         try {
             // In a real app, you would have a forgot password endpoint
@@ -69,7 +68,7 @@ export default function ForgotPasswordPage() {
 
             {!isSent ? (
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                    <form onSubmit={form.handleSubmit(() => onSubmit())} className="space-y-5">
                         <FormField
                             control={form.control}
                             name="email"

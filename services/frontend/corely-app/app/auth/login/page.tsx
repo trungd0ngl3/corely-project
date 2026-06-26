@@ -10,7 +10,6 @@ import { FcGoogle } from "react-icons/fc";
 import { FaFacebook } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
     Form,
@@ -170,7 +169,7 @@ export default function LoginPage() {
             </div>
 
             <p className="mt-8 text-center text-sm text-gray-600">
-                Don't have an account?{" "}
+                {"Don't"} have an account?{" "}
                 <Link href="/auth/register" className="font-semibold text-primary hover:text-blue-700">
                     Sign Up
                 </Link>

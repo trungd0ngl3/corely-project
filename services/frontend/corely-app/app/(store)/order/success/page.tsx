@@ -11,7 +11,7 @@ export default function OrderSuccessPage() {
                 </div>
 
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">Order Placed Successfully!</h1>
-                <p className="text-gray-500 mb-8">Thank you for your purchase. We've received your order and will process it right away.</p>
+                <p className="text-gray-500 mb-8">Thank you for your purchase. {"We've"} received your order and will process it right away.</p>
 
                 <div className="bg-gray-50 rounded-xl p-6 mb-8 text-left">
                     <h2 className="font-semibold text-lg mb-4 border-b pb-2">Order Details</h2>

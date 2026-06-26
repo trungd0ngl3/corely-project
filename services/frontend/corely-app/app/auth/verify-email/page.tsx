@@ -124,7 +124,7 @@ function VerifyEmailContent() {
                     )}
                 </Button>
                 <p className="text-sm text-gray-500">
-                    Didn't receive it? Check your spam folder or try resending.
+                    {"Didn't"} receive it? Check your spam folder or try resending.
                 </p>
             </div>
         </div>

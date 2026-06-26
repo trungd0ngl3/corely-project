@@ -88,7 +88,7 @@ export default function AdminProductsPage() {
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight text-slate-900">Products</h1>
                     <p className="text-sm text-slate-500 mt-1">
-                        Manage your store's products and inventory.
+                        {"Manage your store's products and inventory."}
                     </p>
                 </div>
                 <Button asChild>

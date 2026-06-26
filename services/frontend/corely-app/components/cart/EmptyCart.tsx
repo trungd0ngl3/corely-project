@@ -12,7 +12,7 @@ export function EmptyCart() {
             </div>
             <h2 className="text-2xl font-semibold mb-2">Your cart is empty</h2>
             <p className="text-muted-foreground mb-8 max-w-md">
-                Looks like you haven't added anything yet. Start exploring our high-performance PC components!
+                Looks like you {"haven't"} added anything yet. Start exploring our high-performance PC components!
             </p>
             <Link href="/products">
                 <Button size="lg" className="h-12 px-8">

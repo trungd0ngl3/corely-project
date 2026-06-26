@@ -9,7 +9,7 @@ export default function ProductNotFound() {
             </div>
             <h1 className="mb-2 text-3xl font-bold text-on-surface">Product Not Found</h1>
             <p className="mb-8 max-w-md text-on-surface-variant">
-                We couldn't find the product you're looking for. It might have been removed, renamed, or temporarily unavailable.
+                We {"couldn't"} find the product {"you're"} looking for. It might have been removed, renamed, or temporarily unavailable.
             </p>
             <div className="flex gap-4">
                 <Link

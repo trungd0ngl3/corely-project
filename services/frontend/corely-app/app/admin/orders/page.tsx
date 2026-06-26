@@ -1,4 +1,4 @@
-import { Search, Filter, MoreVertical, Eye, Truck, CheckCircle, XCircle } from "lucide-react";
+import { Search, Filter, MoreVertical, Eye, Truck, CheckCircle } from "lucide-react";
 
 const MOCK_ADMIN_ORDERS = [
     {

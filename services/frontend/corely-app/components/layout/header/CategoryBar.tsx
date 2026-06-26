@@ -62,11 +62,14 @@ export function CategoryBar() {
                                         </NavigationMenuContent>
                                     </>
                                 ) : (
-                                    <Link href={`/products?category=${category.slug}`} legacyBehavior passHref>
-                                        <NavigationMenuLink className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-transparent px-3 py-2 text-sm font-medium text-on-surface-variant transition-colors hover:bg-transparent hover:text-primary-container focus:bg-transparent focus:text-primary-container disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-transparent data-[state=open]:bg-transparent">
+                                    <NavigationMenuLink asChild>
+                                        <Link
+                                            href={`/products?category=${category.slug}`}
+                                            className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-transparent px-3 py-2 text-sm font-medium text-on-surface-variant transition-colors hover:bg-transparent hover:text-primary-container focus:bg-transparent focus:text-primary-container disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-transparent data-[state=open]:bg-transparent"
+                                        >
                                             {category.name}
-                                        </NavigationMenuLink>
-                                    </Link>
+                                        </Link>
+                                    </NavigationMenuLink>
                                 )}
                             </NavigationMenuItem>
                         ))}

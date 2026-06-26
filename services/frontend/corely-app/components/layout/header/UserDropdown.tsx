@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
 import { User, LogOut, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/store/use-auth";
@@ -15,12 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function UserDropdown() {
-    const { user, isAuthenticated, logout } = useAuthStore();
-    const [isHydrated, setIsHydrated] = useState(false);
-
-    useEffect(() => {
-        setIsHydrated(true);
-    }, []);
+    const { user, isAuthenticated, isHydrated, logout } = useAuthStore();
 
     if (!isHydrated) {
         return (
