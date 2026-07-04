@@ -5,7 +5,11 @@ import lombok.*;
 
 @Entity
 @Table(name = "brands")
-@Getter @Setter
+@Getter
+@Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Brand {
 
     @Id
@@ -14,4 +18,6 @@ public class Brand {
 
     @Column(unique = true)
     private String name;
+
+    private String slug;
 }
