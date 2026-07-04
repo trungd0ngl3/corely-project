@@ -1,7 +1,7 @@
 package com.corely.corely_backend.mapper;
 
-import com.corely.corely_backend.dto.request.UserCreationRequest;
-import com.corely.corely_backend.dto.request.UserUpdateRequest;
+import com.corely.corely_backend.dto.request.auth.UserCreationRequest;
+import com.corely.corely_backend.dto.request.auth.UserUpdateRequest;
 import com.corely.corely_backend.dto.response.auth.UserResponse;
 import com.corely.corely_backend.entity.User;
 import org.mapstruct.Mapper;

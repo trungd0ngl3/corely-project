@@ -21,13 +21,12 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { toast } from "sonner";
-import axios from "axios";
+import { register } from "@/lib/api";
 
 const registerSchema = z.object({
     fullName: z.string().min(2, { message: "Full name must be at least 2 characters" }),
     email: z.string().email({ message: "Invalid email address" }),
     phone: z.string().min(10, { message: "Phone number is required" }),
-    dob: z.string().min(1, { message: "Date of birth is required" }),
     password: z.string()
         .min(8, { message: "Password must be at least 8 characters" })
         .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
@@ -61,7 +60,6 @@ export default function RegisterPage() {
             fullName: "",
             email: "",
             phone: "",
-            dob: "",
             password: "",
             confirmPassword: "",
             agreeTerms: false,
@@ -105,19 +103,12 @@ export default function RegisterPage() {
     const onSubmit = async (data: RegisterFormValues) => {
         setIsLoading(true);
         try {
-            await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/auth/register`, {
-                fullName: data.fullName,
-                email: data.email,
-                phone: data.phone,
-                dob: data.dob,
-                password: data.password,
-            });
-
+            await register(data.fullName, data.email, data.phone, data.password);
             toast.success("Registration successful! Please check your email to verify your account.");
-            router.push("/auth/verify-email");
+            router.push("/auth/login");
         } catch (error) {
-            toast.error("Registration failed. Please try again.");
-            console.error("Registration error:", error);
+            const message = error instanceof Error ? error.message : "Registration failed. Please try again.";
+            toast.error(message);
         } finally {
             setIsLoading(false);
         }
@@ -168,35 +159,19 @@ export default function RegisterPage() {
                         )}
                     />
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                            control={form.control}
-                            name="phone"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Phone</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Phone number" {...field} disabled={isLoading} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <FormField
-                            control={form.control}
-                            name="dob"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Date of Birth</FormLabel>
-                                    <FormControl>
-                                        <Input type="date" {...field} disabled={isLoading} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </div>
+                    <FormField
+                        control={form.control}
+                        name="phone"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Phone</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Phone number" {...field} disabled={isLoading} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
                     <FormField
                         control={form.control}
@@ -221,7 +196,7 @@ export default function RegisterPage() {
                                         <div className="flex justify-between items-center text-xs">
                                             <span className="font-medium text-gray-500">Password Strength</span>
                                             <span className={`font-semibold ${passwordStrength.score <= 2 ? 'text-red-500' :
-                                                    passwordStrength.score === 3 ? 'text-yellow-500' : 'text-green-500'
+                                                passwordStrength.score === 3 ? 'text-yellow-500' : 'text-green-500'
                                                 }`}>
                                                 {getStrengthText()}
                                             </span>

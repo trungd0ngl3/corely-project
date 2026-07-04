@@ -21,4 +21,9 @@ public class CartResponse {
 
     BigDecimal totalAmount;
     Integer totalItems;
+
+    // Voucher/discount
+    String voucherCode;
+    BigDecimal discountAmount;
+    BigDecimal finalAmount;
 }

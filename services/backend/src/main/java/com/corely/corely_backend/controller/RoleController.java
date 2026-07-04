@@ -1,6 +1,6 @@
 package com.corely.corely_backend.controller;
 
-import com.corely.corely_backend.dto.request.RoleRequest;
+import com.corely.corely_backend.dto.request.auth.RoleRequest;
 import com.corely.corely_backend.dto.response.ApiResponse;
 import com.corely.corely_backend.dto.response.auth.RoleResponse;
 import com.corely.corely_backend.service.RoleService;
@@ -34,7 +34,7 @@ public class RoleController {
 
 
     @DeleteMapping("/{name}")
-    ApiResponse<String> delete(@RequestBody String name){
+    ApiResponse<String> delete(@PathVariable String name){
         roleService.delete(name);
         return ApiResponse.<String>builder()
                 .result("Permission deleted.")

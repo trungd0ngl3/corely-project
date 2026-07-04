@@ -1,7 +1,7 @@
 package com.corely.corely_backend.service;
 
-import com.corely.corely_backend.dto.request.UserCreationRequest;
-import com.corely.corely_backend.dto.request.UserUpdateRequest;
+import com.corely.corely_backend.dto.request.auth.UserCreationRequest;
+import com.corely.corely_backend.dto.request.auth.UserUpdateRequest;
 import com.corely.corely_backend.dto.response.auth.UserResponse;
 import com.corely.corely_backend.entity.Role;
 import com.corely.corely_backend.entity.User;
@@ -40,8 +40,10 @@ public class UserService {
         // map request to user
         User user = userMapper.toUser(request);
 
-        HashSet<String> roles = new HashSet<>();
-//        roleRepository.findById(PredefinedRole.USER_ROLE);
+        var userRole = roleRepository.findById("USER");
+        Set<Role> roles = new HashSet<>();
+        userRole.ifPresent(roles::add);
+        user.setRoles(roles);
 
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 

@@ -27,7 +27,7 @@ public class CustomJwtDecoder implements JwtDecoder {
     InvalidatedTokenRepository invalidatedTokenRepository;
 
     @NonFinal
-    @Value("${jwt.signer-key}")
+    @Value("${jwt.signerKey}")
     String SIGNER_KEY;
 
     @Override
@@ -35,10 +35,9 @@ public class CustomJwtDecoder implements JwtDecoder {
         try {
             SignedJWT signedJWT = SignedJWT.parse(token);
 
-            String algorithm =
-                    signedJWT.getHeader()
-                            .getAlgorithm()
-                            .getName();
+            String algorithm = signedJWT.getHeader()
+                    .getAlgorithm()
+                    .getName();
 
             if (!"HS512".equals(algorithm) && !"HS256".equals(algorithm)) {
                 throw new BadJwtException("Unsupported algorithm");

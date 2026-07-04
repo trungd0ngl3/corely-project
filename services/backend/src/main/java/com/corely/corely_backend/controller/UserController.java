@@ -1,7 +1,7 @@
 package com.corely.corely_backend.controller;
 
-import com.corely.corely_backend.dto.request.UserCreationRequest;
-import com.corely.corely_backend.dto.request.UserUpdateRequest;
+import com.corely.corely_backend.dto.request.auth.UserCreationRequest;
+import com.corely.corely_backend.dto.request.auth.UserUpdateRequest;
 import com.corely.corely_backend.dto.response.ApiResponse;
 import com.corely.corely_backend.dto.response.auth.UserResponse;
 import com.corely.corely_backend.service.UserService;
@@ -12,7 +12,6 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -60,7 +59,7 @@ public class UserController {
     }
 
     // kiểm tra email trả về với email trong SecurityContextHolder
-    @PostAuthorize("@returnObject.email == authentication.email")
+    @PostAuthorize("hasRole('ADMIN') or returnObject.result.email == authentication.name")
     @GetMapping("/{userId}")
     ApiResponse<UserResponse> getUser(@PathVariable String userId){
         return ApiResponse.<UserResponse>builder()

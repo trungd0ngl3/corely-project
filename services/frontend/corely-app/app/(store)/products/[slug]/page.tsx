@@ -94,7 +94,7 @@ export default function ProductDetailPage() {
                             <h2 className="headline-md mb-8">Customer Reviews</h2>
                             <ReviewSummary
                                 rating={product.rating}
-                                count={product.reviewCount}
+                                reviewCount={product.reviewCount}
                                 distribution={product.ratingDistribution}
                             />
                             <div className="mt-8">
@@ -116,7 +116,7 @@ export default function ProductDetailPage() {
             <StickyPurchaseBar
                 name={product.name}
                 price={product.price}
-                imageUrl={product.images[0]?.url || ""}
+                image={product.images[0]?.url || ""}
                 stock={product.stock}
             />
         </div>

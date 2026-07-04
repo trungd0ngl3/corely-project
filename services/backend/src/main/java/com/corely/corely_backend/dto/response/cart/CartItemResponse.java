@@ -18,6 +18,9 @@ public class CartItemResponse {
     String imageUrl;
     BigDecimal price;
     Integer quantity;
+    BigDecimal subtotal;
+    Boolean inStock;
+    Integer availableStock;
     UUID storeId;
     String storeName;
 }

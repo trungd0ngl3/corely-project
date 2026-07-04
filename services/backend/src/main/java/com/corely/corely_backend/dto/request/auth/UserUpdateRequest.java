@@ -1,4 +1,4 @@
-package com.corely.corely_backend.dto.request;
+package com.corely.corely_backend.dto.request.auth;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
@@ -6,7 +6,6 @@ import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
-import org.springframework.security.core.parameters.P;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -26,7 +25,7 @@ public class UserUpdateRequest {
     LocalDate dateOfBirth;
 
     @Pattern(regexp = "^\\+?[0-9]{7,15}$", message = "PHONE_INVALID")
-    String phoneNumber;
+    String phone;
 
     String avatarUrl;
 

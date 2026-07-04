@@ -1,5 +1,5 @@
 import { TrendingUp, Users, ShoppingBag, DollarSign, ArrowUpRight, ArrowDownRight, Download } from "lucide-react";
-import { RevenueChart } from "@/components/admin/dashboard/RevenueChart";
+import RevenueChart from "@/components/admin/dashboard/RevenueChart";
 
 export default function AdminAnalyticsPage() {
     return (

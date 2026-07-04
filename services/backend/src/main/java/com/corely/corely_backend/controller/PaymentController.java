@@ -10,15 +10,15 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
-//@RestController
-//@RequestMapping("/api/v1/payments")
+@RestController
+@RequestMapping("/api/v1/payments")
 @RequiredArgsConstructor
 @Slf4j
 public class PaymentController {
 
     private final PaymentService paymentService;
 
-    @PostMapping("/vnpay/create-url/{orderId}")
+    @PostMapping("/{orderId}/vnpay-url")
     public ResponseEntity<String> createVNPayUrl(@PathVariable UUID orderId) {
         log.info("Creating VNPay URL for order: {}", orderId);
         String paymentUrl = paymentService.createVNPayPaymentUrl(orderId);

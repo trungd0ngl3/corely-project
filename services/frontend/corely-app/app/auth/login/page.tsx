@@ -53,8 +53,9 @@ export default function LoginPage() {
                 password: data.password,
             });
 
-            const { accessToken, user } = response.data;
-            login(user, accessToken);
+            // backend: { code, result: { token, refreshToken, isAuth } }
+            const { token } = response.data.result;
+            login(null, token);
             toast.success("Login successful");
             router.push("/");
         } catch (error) {

@@ -1,4 +1,4 @@
-package com.corely.corely_backend.dto.request;
+package com.corely.corely_backend.dto.request.auth;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;

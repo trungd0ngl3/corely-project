@@ -1,10 +1,9 @@
 package com.corely.corely_backend.controller;
 
-import com.corely.corely_backend.dto.request.AuthenticateRequest;
-import com.corely.corely_backend.dto.request.IntrospectRequest;
-import com.corely.corely_backend.dto.request.LogoutRequest;
-import com.corely.corely_backend.dto.request.RefreshTokenRequest;
-import com.corely.corely_backend.dto.request.UserCreationRequest;
+import com.corely.corely_backend.dto.request.auth.AuthenticateRequest;
+import com.corely.corely_backend.dto.request.auth.IntrospectRequest;
+import com.corely.corely_backend.dto.request.auth.LogoutRequest;
+import com.corely.corely_backend.dto.request.auth.UserCreationRequest;
 import com.corely.corely_backend.dto.response.auth.AuthenticateResponse;
 import com.corely.corely_backend.dto.response.auth.IntrospectResponse;
 import com.corely.corely_backend.service.AuthenticationService;
@@ -87,7 +86,7 @@ class AuthControllerTest {
 
         when(authenticationService.introspect(any())).thenReturn(response);
 
-        mockMvc.perform(post("/api/auth/introspect")
+        mockMvc.perform(post("/api/auth/tokens/introspect")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -101,7 +100,7 @@ class AuthControllerTest {
 
         doNothing().when(authenticationService).logout(any());
 
-        mockMvc.perform(post("/api/auth/logout")
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/api/auth/tokens")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())

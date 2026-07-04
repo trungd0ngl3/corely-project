@@ -5,11 +5,12 @@ import { ShoppingCart, Zap } from "lucide-react";
 
 interface StickyPurchaseBarProps {
     name: string;
+    image: string;
     price: number;
     stock: number;
 }
 
-export function StickyPurchaseBar({ name, price, stock }: StickyPurchaseBarProps) {
+export function StickyPurchaseBar({ name, price, stock, image }: StickyPurchaseBarProps) {
     const [visible, setVisible] = useState(false);
 
     const formatPrice = (val: number) =>
@@ -28,9 +29,12 @@ export function StickyPurchaseBar({ name, price, stock }: StickyPurchaseBarProps
     return (
         <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-outline-variant bg-surface/95 backdrop-blur-md">
             <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 lg:px-8">
-                <div className="hidden sm:block">
-                    <p className="text-sm font-semibold text-on-surface line-clamp-1">{name}</p>
-                    <p className="text-lg font-bold text-primary">{formatPrice(price)}</p>
+                <div className="hidden sm:flex items-center gap-3">
+                    <img src={image} alt={name} className="h-10 w-10 rounded object-cover border border-outline-variant" />
+                    <div>
+                        <p className="text-sm font-semibold text-on-surface line-clamp-1">{name}</p>
+                        <p className="text-lg font-bold text-primary">{formatPrice(price)}</p>
+                    </div>
                 </div>
                 <p className="text-lg font-bold text-primary sm:hidden">{formatPrice(price)}</p>
                 <div className="flex items-center gap-3">
