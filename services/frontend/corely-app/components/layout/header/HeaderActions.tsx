@@ -1,6 +1,6 @@
 import { WishlistButton } from "./WishlistButton";
 import { NotificationButton } from "./NotificationButton";
-import { CartButton } from "./CartButton";
+import { MiniCart } from "./MiniCart";
 import { UserDropdown } from "./UserDropdown";
 
 export function HeaderActions() {
@@ -8,7 +8,7 @@ export function HeaderActions() {
         <nav className="flex items-center gap-1 sm:gap-2">
             <WishlistButton />
             <NotificationButton />
-            <CartButton />
+            <MiniCart />
             <UserDropdown />
         </nav>
     );

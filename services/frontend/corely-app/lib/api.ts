@@ -59,7 +59,9 @@ api.interceptors.response.use(
     (error) => {
         if (error.response?.status === 401 && typeof window !== "undefined") {
             localStorage.removeItem("corely-auth")
-            window.location.href = "/auth/login"
+            if (window.location.pathname !== "/auth/login" && window.location.pathname !== "/auth/register") {
+                window.location.href = "/auth/login"
+            }
         }
         const message =
             error.response?.data?.message || error.message || "Network error"
@@ -98,6 +100,63 @@ export const register = async (
 export const getMyInfo = async (): Promise<User> => {
     const response = await api.get<User>("/api/v1/users/myinfo")
     return response.data
+}
+
+// ─── Cart API ────────────────────────────────────────────────────
+
+export interface CartItemResponse {
+    productId: string
+    variantId?: string
+    productName: string
+    variantName?: string
+    imageUrl: string
+    price: number
+    quantity: number
+    subtotal: number
+    inStock: boolean
+    availableStock: number
+    storeId?: string
+    storeName?: string
+}
+
+export interface CartResponse {
+    userId?: string
+    items: CartItemResponse[]
+    itemsByStore?: Record<string, CartItemResponse[]>
+    totalAmount: number
+    totalItems: number
+    voucherCode?: string
+    discountAmount: number
+    finalAmount: number
+}
+
+export const getCart = async (): Promise<CartResponse> => {
+    const response = await api.get<CartResponse>("/api/cart")
+    return response.data
+}
+
+export const addToCart = async (productId: string, quantity: number, variantId?: string): Promise<void> => {
+    await api.post("/api/cart/items", { productId, variantId, quantity })
+}
+
+export const updateCartItem = async (productId: string, quantity: number, variantId?: string): Promise<void> => {
+    await api.put("/api/cart/items", { productId, variantId, quantity })
+}
+
+export const removeFromCart = async (productId: string): Promise<void> => {
+    await api.delete(`/api/cart/items/${productId}`)
+}
+
+export const clearCartApi = async (): Promise<void> => {
+    await api.delete("/api/cart")
+}
+
+export const applyVoucher = async (code: string): Promise<void> => {
+    await api.post("/api/cart/voucher", { code })
+}
+
+export const removeVoucher = async (): Promise<void> => {
+    await api.delete("/api/cart/voucher")
 }
 
 export default api
