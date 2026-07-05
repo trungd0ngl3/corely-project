@@ -1,6 +1,6 @@
 package com.corely.corely_backend.dto.response.auth;
 
-import com.corely.corely_backend.enums.Role;
+import com.corely.corely_backend.entity.Role;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;

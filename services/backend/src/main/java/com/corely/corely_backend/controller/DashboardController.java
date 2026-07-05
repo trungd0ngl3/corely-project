@@ -20,24 +20,24 @@ public class DashboardController {
 
     private final DashboardService dashboardService;
 
-    @GetMapping("/stats")
+    @GetMapping("/summary")
     @PreAuthorize("hasAnyRole('ADMIN', 'STORE_OWNER')")
-    public ResponseEntity<DashboardStatsResponse> getDashboardStats() {
-        log.info("Getting dashboard stats");
+    public ResponseEntity<DashboardStatsResponse> getDashboardSummary() {
+        log.info("Getting dashboard summary");
         DashboardStatsResponse stats = dashboardService.getDashboardStats();
         return ResponseEntity.ok(stats);
     }
 
-    @GetMapping("/revenue/chart")
+    @GetMapping("/revenues")
     @PreAuthorize("hasAnyRole('ADMIN', 'STORE_OWNER')")
-    public ResponseEntity<List<RevenueChartResponse>> getRevenueChart(
+    public ResponseEntity<List<RevenueChartResponse>> getRevenues(
             @RequestParam(defaultValue = "7") int days) {
-        log.info("Getting revenue chart for last {} days", days);
+        log.info("Getting revenues for last {} days", days);
         List<RevenueChartResponse> revenueData = dashboardService.getRevenueChart(days);
         return ResponseEntity.ok(revenueData);
     }
 
-    @GetMapping("/top-products")
+    @GetMapping("/products/top")
     @PreAuthorize("hasAnyRole('ADMIN', 'STORE_OWNER')")
     public ResponseEntity<List<?>> getTopProducts(
             @RequestParam(defaultValue = "10") int limit) {
@@ -45,11 +45,12 @@ public class DashboardController {
         return ResponseEntity.ok(dashboardService.getTopProducts(limit));
     }
 
-    @GetMapping("/orders/recent")
+    @GetMapping("/orders")
     @PreAuthorize("hasAnyRole('ADMIN', 'STORE_OWNER')")
     public ResponseEntity<List<?>> getRecentOrders(
-            @RequestParam(defaultValue = "10") int limit) {
-        log.info("Getting recent {} orders", limit);
+            @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(defaultValue = "recent") String sort) {
+        log.info("Getting {} orders sorted by {}", limit, sort);
         return ResponseEntity.ok(dashboardService.getRecentOrders(limit));
     }
 }

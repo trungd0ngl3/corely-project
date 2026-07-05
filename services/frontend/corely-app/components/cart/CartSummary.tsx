@@ -3,19 +3,21 @@
 import { useCart } from "@/store/use-cart";
 import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
+import { CouponForm } from "./CouponForm";
 
 export function CartSummary() {
     const { totalPrice, items } = useCart();
     const subtotal = totalPrice();
 
-    // Simulate some logic
-    const discount = subtotal > 20000000 ? 2000000 : 0;
-    const shipping = 0;
-    const vat = subtotal * 0.1;
-    const total = subtotal - discount + shipping + vat;
+    const { discount: getDiscount, finalPrice, serverCart } = useCart();
+
+    // Server values or fallbacks
+    const discount = getDiscount();
+    const total = finalPrice();
+    const shipping = 0; // Assume free shipping for now or fetch from server
+    const vat = 0; // If VAT is included in server total, or adjust as needed
 
     if (items.length === 0) return null;
 
@@ -49,13 +51,7 @@ export function CartSummary() {
                 <span className="text-primary text-xl">{formatCurrency(total)}</span>
             </div>
 
-            <div className="mb-6 space-y-2">
-                <p className="text-sm font-medium">Discount Code</p>
-                <div className="flex space-x-2">
-                    <Input placeholder="CORELY10" />
-                    <Button variant="secondary">Apply</Button>
-                </div>
-            </div>
+            <CouponForm />
 
             <Link href="/checkout" className="w-full">
                 <Button className="w-full h-12 text-base font-semibold bg-[#2563EB] hover:bg-blue-700 text-white">

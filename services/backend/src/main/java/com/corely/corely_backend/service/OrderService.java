@@ -63,6 +63,7 @@ public class OrderService {
         order.setUser(user);
         order.setStore(store);
         order.setShippingAddress(request.getShippingAddress());
+        order.setShippingMethod(request.getShippingMethod());
         order.setPaymentMethod(request.getPaymentMethod());
         order.setStatus(OrderStatus.PENDING);
         order.setPaymentStatus(PaymentStatus.PENDING);

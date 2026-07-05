@@ -45,6 +45,7 @@ public class ProductController {
                 .build();
     }
 
+    // ponytail: REST chuẩn nên đặt ở StoreController, giữ lại cho tương thích cũ
     @GetMapping("/store/{storeId}")
     public ApiResponse<Page<ProductResponse>> getProductsByStore(
             @PathVariable UUID storeId,

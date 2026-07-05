@@ -1,6 +1,6 @@
 package com.corely.corely_backend.controller;
 
-import com.corely.corely_backend.dto.request.*;
+import com.corely.corely_backend.dto.request.auth.*;
 import com.corely.corely_backend.dto.response.ApiResponse;
 import com.corely.corely_backend.dto.response.auth.AuthenticateResponse;
 import com.corely.corely_backend.dto.response.auth.IntrospectResponse;
@@ -39,7 +39,7 @@ public class AuthController {
                 .build();
     }
 
-    @PostMapping("/introspect")
+    @PostMapping("/tokens/introspect")
     ApiResponse<IntrospectResponse> introspect(@RequestBody IntrospectRequest request) {
         var result = authenticationService.introspect(request);
         return ApiResponse.<IntrospectResponse>builder()
@@ -48,7 +48,7 @@ public class AuthController {
                 .build();
     }
 
-    @PostMapping("/refresh")
+    @PostMapping("/tokens/refresh")
     ApiResponse<AuthenticateResponse> refresh(@RequestBody RefreshTokenRequest request)
             throws ParseException, JOSEException {
         var result = authenticationService.refreshToken(request.getToken());
@@ -58,7 +58,7 @@ public class AuthController {
                 .build();
     }
 
-    @PostMapping("/logout")
+    @DeleteMapping("/tokens")
     ApiResponse<Void> logout(@RequestBody LogoutRequest request) throws ParseException, JOSEException {
         authenticationService.logout(request);
         return ApiResponse.<Void>builder()

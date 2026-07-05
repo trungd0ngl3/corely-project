@@ -16,7 +16,7 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/upload")
+@RequestMapping("/api/uploads")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UploadController {
     CloudinaryService cloudinaryService;

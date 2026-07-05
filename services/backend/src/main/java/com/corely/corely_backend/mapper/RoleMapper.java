@@ -1,6 +1,6 @@
 package com.corely.corely_backend.mapper;
 
-import com.corely.corely_backend.dto.request.RoleRequest;
+import com.corely.corely_backend.dto.request.auth.RoleRequest;
 import com.corely.corely_backend.dto.response.auth.RoleResponse;
 import com.corely.corely_backend.entity.Role;
 import org.mapstruct.Mapper;

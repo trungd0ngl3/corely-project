@@ -41,6 +41,8 @@ public class Order extends BaseEntity {
 
     @Column(columnDefinition = "TEXT")
     private String shippingAddress;
+    
+    private String shippingMethod;
 
     @ManyToOne
     private User user;

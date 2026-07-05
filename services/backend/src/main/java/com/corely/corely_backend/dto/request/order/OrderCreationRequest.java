@@ -19,6 +19,9 @@ public class OrderCreationRequest {
     @NotBlank(message = "SHIPPING_ADDRESS_REQUIRED")
     String shippingAddress;
 
+    @NotBlank(message = "SHIPPING_METHOD_REQUIRED")
+    String shippingMethod; // e.g., "STANDARD", "EXPRESS"
+
     @NotBlank(message = "PAYMENT_METHOD_REQUIRED")
     String paymentMethod; // e.g., "COD", "VNPAY"
 }

@@ -1,4 +1,3 @@
-import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 
 export default function StoreLayout({
@@ -8,7 +7,6 @@ export default function StoreLayout({
 }) {
     return (
         <div className="flex min-h-screen flex-col bg-background">
-            <Header />
             <main className="flex-1">
                 {children}
             </main>

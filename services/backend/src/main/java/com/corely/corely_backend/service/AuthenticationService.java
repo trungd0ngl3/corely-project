@@ -1,8 +1,8 @@
 package com.corely.corely_backend.service;
 
-import com.corely.corely_backend.dto.request.AuthenticateRequest;
-import com.corely.corely_backend.dto.request.IntrospectRequest;
-import com.corely.corely_backend.dto.request.LogoutRequest;
+import com.corely.corely_backend.dto.request.auth.AuthenticateRequest;
+import com.corely.corely_backend.dto.request.auth.IntrospectRequest;
+import com.corely.corely_backend.dto.request.auth.LogoutRequest;
 import com.corely.corely_backend.dto.response.auth.AuthenticateResponse;
 import com.corely.corely_backend.dto.response.auth.IntrospectResponse;
 import com.corely.corely_backend.entity.InvalidatedToken;

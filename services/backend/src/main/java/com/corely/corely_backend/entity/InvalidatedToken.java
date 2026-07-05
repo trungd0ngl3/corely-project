@@ -8,12 +8,13 @@ import lombok.experimental.FieldDefaults;
 import java.util.Date;
 
 @Builder
-@Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+
+@Entity
 public class InvalidatedToken {
     @Id
     String id;

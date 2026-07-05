@@ -33,6 +33,7 @@ import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.UUID;
 
+@Service
 @RequiredArgsConstructor
 @Slf4j
 public class PaymentService {
