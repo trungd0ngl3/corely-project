@@ -22,6 +22,8 @@ import {
 import { useAuthStore } from "@/store/use-auth";
 import { toast } from "sonner";
 import axios from "axios";
+import { loginApi, getMeApi } from "@/services/auth.service";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 const loginSchema = z.object({
     email: z.string().email({ message: "Invalid email address" }),
@@ -35,6 +37,7 @@ export default function LoginPage() {
     const router = useRouter();
     const { login } = useAuthStore();
     const [isLoading, setIsLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const form = useForm<LoginFormValues>({
         resolver: zodResolver(loginSchema),
@@ -48,30 +51,34 @@ export default function LoginPage() {
     const onSubmit = async (data: LoginFormValues) => {
         setIsLoading(true);
         try {
-            const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/auth/login`, {
-                email: data.email,
-                password: data.password,
-            });
+            const response = await loginApi(data.email, data.password, data.rememberMe);
+            if (response.data.code !== 1000) {
+                toast.error(response.data.message || "Login failed");
+                return;
+            }
 
-            // backend: { code, result: { token, refreshToken, isAuth } }
             const { token } = response.data.result;
-            login(null, token);
-            toast.success("Login successful");
-            router.push("/");
+            const me = await getMeApi(token);
+            login(me.data, token);
+            toast.success("Welcome back!");
+            router.replace("/");
         } catch (error) {
-            toast.error("Invalid email or password");
-            console.error("Login error:", error);
+            if (axios.isAxiosError(error)) {
+                toast.error(error.response?.data?.message ?? "Something went wrong");
+            } else {
+                toast.error("Unexpected error");
+            }
         } finally {
             setIsLoading(false);
         }
     };
 
     const loginWithGoogle = () => {
-        window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/oauth2/authorization/google`;
+        window.location.assign(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/oauth2/authorization/google`);
     };
 
     const loginWithFacebook = () => {
-        window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/oauth2/authorization/facebook`;
+        window.location.assign(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/oauth2/authorization/facebook`);
     };
 
     return (
@@ -104,7 +111,21 @@ export default function LoginPage() {
                             <FormItem>
                                 <FormLabel>Password</FormLabel>
                                 <FormControl>
-                                    <Input type="password" placeholder="Enter your password" {...field} disabled={isLoading} />
+                                    <div className="relative">
+                                        <Input
+                                            type={showPassword ? "text" : "password"}
+                                            placeholder="Enter your password"
+                                            {...field}
+                                            disabled={isLoading}
+                                        />
+                                        <button
+                                            type="button"
+                                            className="absolute right-3 top-2.5 text-gray-500"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                        >
+                                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    </div>
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -142,7 +163,8 @@ export default function LoginPage() {
                     </div>
 
                     <Button type="submit" className="w-full" disabled={isLoading}>
-                        {isLoading ? "Signing in..." : "Sign In"}
+                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Sign In
                     </Button>
                 </form>
             </Form>

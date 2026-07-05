@@ -159,4 +159,35 @@ export const removeVoucher = async (): Promise<void> => {
     await api.delete("/api/cart/voucher")
 }
 
+export interface Product {
+    id: string
+    name: string
+    slug: string
+    price: number
+    imageUrl: string
+    category: string
+    // ponytail: thêm trường nếu backend trả về nhiều hơn
+}
+
+export const fetchProducts = async (
+    page: number = 0,
+    size: number = 20,
+    sortBy: string = "createdAt",
+    sortDir: string = "DESC"
+): Promise<Product[]> => {
+    const response = await api.get("/products", {
+        params: { page, size, sortBy, sortDir }
+    })
+    // ponytail: unwrap Page<Product> nếu backend trả về dạng page
+    return response.data.content ?? response.data
+}
+
+// ─── Order API ──────────────────────────────────────────────────────
+
+export const createOrder = async (order: any): Promise<any> => {
+    // ponytail: kiểu order chuẩn hóa khi backend ổn định
+    const response = await api.post("/orders", order)
+    return response.data
+}
+
 export default api

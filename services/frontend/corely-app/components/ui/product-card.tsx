@@ -45,7 +45,7 @@ export function ProductCard({
             {/* Image Container */}
             <Link href={`/products/${id}`} className="relative aspect-square overflow-hidden rounded-xl bg-surface-container-low block">
                 <Image
-                    src={image}
+                    src={image || "/placeholder.svg"}
                     alt={name}
                     fill
                     className="object-contain p-4 transition-transform group-hover:scale-110"

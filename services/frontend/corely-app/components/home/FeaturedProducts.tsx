@@ -1,19 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ProductCard } from "@/components/ui/product-card";
 import { SectionTitle } from "@/components/ui/section-title";
-import { FEATURED_PRODUCTS } from "@/lib/mock-data";
+import { fetchProducts, Product } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 const TABS = ["All", "Gaming", "Workstation", "Laptop", "Accessories"];
 
 export function FeaturedProducts() {
     const [activeTab, setActiveTab] = useState("All");
+    const [products, setProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetchProducts()
+            .then(setProducts)
+            .finally(() => setLoading(false));
+    }, []);
 
     const filteredProducts = activeTab === "All"
-        ? FEATURED_PRODUCTS
-        : FEATURED_PRODUCTS.filter(p => p.category === activeTab);
+        ? products
+        : products.filter(p => p.category === activeTab);
+
+    if (loading) return <div className="py-16 text-center">Loading...</div>;
 
     return (
         <section className="py-16 bg-surface">
@@ -43,7 +53,14 @@ export function FeaturedProducts() {
 
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                     {filteredProducts.map((product) => (
-                        <ProductCard key={product.id} {...product} />
+                        <ProductCard
+                            key={product.id}
+                            id={product.id}
+                            name={product.name}
+                            price={product.price}
+                            image={product.imageUrl}
+                            brand=""
+                        />
                     ))}
                 </div>
             </div>

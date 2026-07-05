@@ -1,19 +1,11 @@
-import { login as apiLogin, register as apiRegister, getMyInfo } from "@/lib/api"
+import api from "@/lib/axios";
 
-export const authService = {
-    login: async (email: string, password: string) => {
-        const loginRes = await apiLogin(email, password)
-        // Fetch user profile after getting token
-        const user = await getMyInfo()
-        return { ...loginRes, user }
-    },
+export const loginApi = (email: string, password: string, rememberMe?: boolean) => {
+    return api.post("/api/auth/login", { email, password, rememberMe });
+};
 
-    register: async (
-        fullName: string,
-        email: string,
-        phone: string,
-        password: string,
-    ) => {
-        return apiRegister(fullName, email, phone, password)
-    },
-}
+export const getMeApi = (token?: string) => {
+    return api.get("/api/v1/users/myinfo", {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
+};
