@@ -10,8 +10,11 @@ import org.springframework.http.HttpStatusCode;
 @Getter
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
 public enum ErrorCode {
+    // General
     UNCATEGORIZED_ERROR(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR),
     INVALID_KEY(1001, "Uncategorized error", HttpStatus.BAD_REQUEST),
+
+    // User & Auth
     USER_EXISTED(1002, "User existed", HttpStatus.BAD_REQUEST),
     USERNAME_INVALID(1003, "Username must be at least {min} character", HttpStatus.BAD_REQUEST),
     PASSWORD_INVALID(1004, "Password must be at least {min} character", HttpStatus.BAD_REQUEST),
@@ -20,21 +23,33 @@ public enum ErrorCode {
     UNAUTHORIZED(1007, "You do not have permission", HttpStatus.FORBIDDEN),
     DOB_INVALID(1008, "Age must at least {min}", HttpStatus.BAD_REQUEST),
     USER_NOT_FOUND(1009, "User not found", HttpStatus.NOT_FOUND),
+    USER_NOT_EXISTED(1017, "User not existed", HttpStatus.NOT_FOUND),
+    ROLE_NOT_FOUND(1026, "Role not found", HttpStatus.NOT_FOUND),
+
+    // Store & Product
     STORE_NOT_FOUND(1010, "Store not found", HttpStatus.NOT_FOUND),
     PRODUCT_NOT_FOUND(1011, "Product not found", HttpStatus.NOT_FOUND),
-    ORDER_NOT_FOUND(1012, "Order not found", HttpStatus.NOT_FOUND),
-    INVALID_VOUCHER(1013, "Invalid voucher", HttpStatus.BAD_REQUEST),
+    PRODUCT_NOT_AVAILABLE(1027, "Product not available", HttpStatus.BAD_REQUEST),
+    PRODUCT_ALREADY_IN_WISHLIST(1028, "Product already in wishlist", HttpStatus.BAD_REQUEST),
     STORE_EXISTED(1014, "Store existed", HttpStatus.BAD_REQUEST),
-    CART_EMPTY(1015, "Cart is empty", HttpStatus.BAD_REQUEST),
     OUT_OF_STOCK(1016, "Product out of stock", HttpStatus.BAD_REQUEST),
-    USER_NOT_EXISTED(1017, "User not existed", HttpStatus.NOT_FOUND),
-    PAYMENT_NOT_FOUND(1018, "Payment not found", HttpStatus.NOT_FOUND),
-    INVALID_SIGNATURE(1019, "Invalid signature", HttpStatus.BAD_REQUEST),
     BRAND_EXISTED(1020, "Brand existed", HttpStatus.BAD_REQUEST),
     BRAND_NOT_FOUND(1021, "Brand not found", HttpStatus.NOT_FOUND),
-    ADDRESS_NOT_FOUND(1022, "Address not found", HttpStatus.NOT_FOUND),
     CATEGORY_NOT_FOUND(1023, "Category not found", HttpStatus.NOT_FOUND),
     CATEGORY_EXISTED(1024, "Category existed", HttpStatus.BAD_REQUEST),
+
+    // Order & Cart
+    ORDER_NOT_FOUND(1012, "Order not found", HttpStatus.NOT_FOUND),
+    INVALID_VOUCHER(1013, "Invalid voucher", HttpStatus.BAD_REQUEST),
+    CART_EMPTY(1015, "Cart is empty", HttpStatus.BAD_REQUEST),
+
+    // Payment
+    PAYMENT_NOT_FOUND(1018, "Payment not found", HttpStatus.NOT_FOUND),
+    INVALID_SIGNATURE(1019, "Invalid signature", HttpStatus.BAD_REQUEST),
+
+    // Other
+    ADDRESS_NOT_FOUND(1022, "Address not found", HttpStatus.NOT_FOUND),
+    REVIEW_NOT_FOUND(1025, "Review not found", HttpStatus.NOT_FOUND),
     ;
 
     int code;

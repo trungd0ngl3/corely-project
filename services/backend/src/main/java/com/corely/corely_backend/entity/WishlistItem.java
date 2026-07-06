@@ -6,6 +6,9 @@ import lombok.*;
 @Entity
 @Table(name = "wishlist_items")
 @Getter @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class WishlistItem {
 
     @Id

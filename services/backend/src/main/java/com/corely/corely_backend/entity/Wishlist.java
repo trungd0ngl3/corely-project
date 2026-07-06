@@ -1,25 +1,27 @@
 package com.corely.corely_backend.entity;
 
-
 import jakarta.persistence.*;
 import lombok.*;
-
+import lombok.experimental.FieldDefaults;
 import java.util.List;
-import java.util.UUID;
 
 @Entity
 @Table(name = "wishlists")
 @Getter
 @Setter
-public class Wishlist {
-
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class Wishlist extends BaseEntity {
     @Id
-    @GeneratedValue
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    String id;
 
     @OneToOne
-    private User user;
+    @JoinColumn(name = "user_id")
+    User user;
 
     @OneToMany(mappedBy = "wishlist", cascade = CascadeType.ALL)
-    private List<WishlistItem> items;
+    List<WishlistItem> items;
 }

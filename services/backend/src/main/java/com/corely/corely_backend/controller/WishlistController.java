@@ -1,0 +1,38 @@
+package com.corely.corely_backend.controller;
+
+import com.corely.corely_backend.dto.response.ApiResponse;
+import com.corely.corely_backend.dto.response.WishlistResponse;
+import com.corely.corely_backend.service.WishlistService;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/wishlist")
+@RequiredArgsConstructor
+@FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
+public class WishlistController {
+    WishlistService wishlistService;
+
+    @GetMapping
+    public ApiResponse<List<WishlistResponse>> getMyWishlist() {
+        return ApiResponse.<List<WishlistResponse>>builder()
+                .result(wishlistService.getMyWishlist())
+                .build();
+    }
+
+    @PostMapping("/{productId}")
+    public ApiResponse<Void> addToWishlist(@PathVariable String productId) {
+        wishlistService.addToWishlist(UUID.fromString(productId));
+        return ApiResponse.<Void>builder().build();
+    }
+
+    @DeleteMapping("/{productId}")
+    public ApiResponse<Void> removeFromWishlist(@PathVariable String productId) {
+        wishlistService.removeFromWishlist(UUID.fromString(productId));
+        return ApiResponse.<Void>builder().build();
+    }
+}
