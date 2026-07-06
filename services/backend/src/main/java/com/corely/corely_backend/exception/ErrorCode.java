@@ -33,6 +33,8 @@ public enum ErrorCode {
     BRAND_EXISTED(1020, "Brand existed", HttpStatus.BAD_REQUEST),
     BRAND_NOT_FOUND(1021, "Brand not found", HttpStatus.NOT_FOUND),
     ADDRESS_NOT_FOUND(1022, "Address not found", HttpStatus.NOT_FOUND),
+    CATEGORY_NOT_FOUND(1023, "Category not found", HttpStatus.NOT_FOUND),
+    CATEGORY_EXISTED(1024, "Category existed", HttpStatus.BAD_REQUEST),
     ;
 
     int code;

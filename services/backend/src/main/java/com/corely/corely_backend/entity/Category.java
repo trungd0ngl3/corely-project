@@ -2,26 +2,23 @@ package com.corely.corely_backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 @Entity
 @Table(name = "categories")
 @Getter
 @Setter
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Category {
-
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    String id;
 
-    private String name;
+    @Column(unique = true, nullable = false)
+    String name;
 
-    @Column(unique = true)
-    private String slug;
-
-    @ManyToOne
-    @JoinColumn(name = "parent_id")
-    private Category parent;
+    String description;
 }
