@@ -13,12 +13,14 @@ import com.corely.corely_backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -32,101 +34,62 @@ public class UserService {
     PasswordEncoder passwordEncoder;
     UserMapper userMapper;
 
-    public UserResponse createUser(UserCreationRequest request){
-        // check email
-        if(userRepository.existsByEmail(request.getEmail()))
+    @Transactional
+    public UserResponse createUser(UserCreationRequest request) {
+        if (userRepository.existsByEmail(request.getEmail()))
             throw new AppException(ErrorCode.USER_EXISTED);
 
-        // map request to user
         User user = userMapper.toUser(request);
-
-        var userRole = roleRepository.findById("USER");
-        Set<Role> roles = new HashSet<>();
-        userRole.ifPresent(roles::add);
-        user.setRoles(roles);
-
+        Role role = roleRepository.findById("USER")
+                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
+        user.setRoles(Set.of(role));
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setIsActive(true);
 
+        log.info("Creating user {}", request.getEmail());
         return userMapper.toUserResponse(userRepository.save(user));
     }
 
-    public User getUserById(UUID id) {
-        return userRepository.findById(id)
+    @Transactional(readOnly = true)
+    public Page<UserResponse> getAllUsers(int page, int size) {
+        return userRepository.findAll(PageRequest.of(page, size)).map(userMapper::toUserResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public UserResponse getMyInfo() {
+        return userMapper.toUserResponse(getCurrentUser());
+    }
+
+    @Transactional
+    public UserResponse updateUser(UUID userId, UserUpdateRequest request) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-    }
-
-    public User getUserByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-    }
-    public List<UserResponse> getUsers(){
-        return userRepository.findAll()
-                .stream()
-                .map(userMapper::toUserResponse)
-                .toList();
-    }
-
-    public UserResponse getUser(String id){
-        return userMapper.toUserResponse(findUser(id));
-    }
-
-    public UserResponse getMyInfo(){
-        var context = SecurityContextHolder.getContext();
-        String email = context.getAuthentication().getName();
-
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.EMAIL_NOT_EXISTED));
-
-        return userMapper.toUserResponse(user);
-    }
-
-
-    public UserResponse updateUser(String userId, UserUpdateRequest request) {
-        User user = findUser(userId);
-        var roles = roleRepository.findAllById(request.getRoles());
 
         userMapper.updateUser(user, request);
 
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRoles(new HashSet<>(roles));
+        if (request.getPassword() != null && !request.getPassword().isBlank()) {
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
+
+        if (request.getRoles() != null) {
+            user.setRoles(new HashSet<>(roleRepository.findAllById(request.getRoles())));
+        }
 
         return userMapper.toUserResponse(userRepository.save(user));
     }
 
-    public void deleteUser(String userId){
-        userRepository.deleteById(UUID.fromString(userId));
+    @Transactional
+    public void deleteUser(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        user.setIsActive(false);
+        userRepository.save(user);
+        log.info("Deactivated user {}", userId);
     }
 
-    public User processOAuth2User(String email, String name, String picture, String provider, String providerId) {
+    private User getCurrentUser() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByEmail(email)
-                .map(existingUser -> {
-                    if (existingUser.getProvider() == null) {
-                        existingUser.setProvider(provider);
-                        existingUser.setProviderId(providerId);
-                    }
-                    if (existingUser.getAvatarUrl() == null && picture != null) {
-                        existingUser.setAvatarUrl(picture);
-                    }
-                    return userRepository.save(existingUser);
-                })
-                .orElseGet(() -> {
-                    var userRole = roleRepository.findById("USER");
-                    Set<Role> roles = new HashSet<>();
-                    userRole.ifPresent(roles::add);
-
-                    User newUser = User.builder()
-                            .email(email)
-                            .fullName(name)
-                            .avatarUrl(picture)
-                            .provider(provider)
-                            .providerId(providerId)
-                            .roles(roles)
-                            .isActive(true)
-                            .build();
-                    return userRepository.save(newUser);
-                });
-    }
-
-    private User findUser(String id){
-        return userRepository.findById(UUID.fromString(id)).orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     }
 }

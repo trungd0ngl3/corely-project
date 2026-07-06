@@ -20,4 +20,9 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
     Page<Product> findByIsActiveTrue(Pageable pageable);
 
     Page<Product> findByCategoryIdAndIsActiveTrue(UUID categoryId, Pageable pageable);
+
+    Page<Product> findByNameContainingIgnoreCaseAndIsActiveTrue(String name, Pageable pageable);
+
+    Page<Product> findByCategoryIdAndBrandIdAndPriceBetweenAndIsActiveTrue(
+            UUID categoryId, UUID brandId, Double minPrice, Double maxPrice, Pageable pageable);
 }

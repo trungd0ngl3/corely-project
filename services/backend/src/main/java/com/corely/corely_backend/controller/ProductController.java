@@ -56,6 +56,29 @@ public class ProductController {
                 .build();
     }
 
+    @GetMapping("/search")
+    public ApiResponse<Page<ProductResponse>> searchProducts(
+            @RequestParam String q,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ApiResponse.<Page<ProductResponse>>builder()
+                .result(productService.searchProducts(q, page, size))
+                .build();
+    }
+
+    @GetMapping("/filter")
+    public ApiResponse<Page<ProductResponse>> filterProducts(
+            @RequestParam(required = false) UUID categoryId,
+            @RequestParam(required = false) UUID brandId,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ApiResponse.<Page<ProductResponse>>builder()
+                .result(productService.filterProducts(categoryId, brandId, minPrice, maxPrice, page, size))
+                .build();
+    }
+
     @PutMapping("/{id}")
     public ApiResponse<ProductResponse> updateProduct(@PathVariable UUID id, @RequestBody @Valid ProductCreationRequest request) {
         return ApiResponse.<ProductResponse>builder()
