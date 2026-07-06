@@ -32,6 +32,7 @@ public enum ErrorCode {
     INVALID_SIGNATURE(1019, "Invalid signature", HttpStatus.BAD_REQUEST),
     BRAND_EXISTED(1020, "Brand existed", HttpStatus.BAD_REQUEST),
     BRAND_NOT_FOUND(1021, "Brand not found", HttpStatus.NOT_FOUND),
+    ADDRESS_NOT_FOUND(1022, "Address not found", HttpStatus.NOT_FOUND),
     ;
 
     int code;
