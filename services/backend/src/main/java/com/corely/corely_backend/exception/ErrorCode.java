@@ -30,6 +30,8 @@ public enum ErrorCode {
     USER_NOT_EXISTED(1017, "User not existed", HttpStatus.NOT_FOUND),
     PAYMENT_NOT_FOUND(1018, "Payment not found", HttpStatus.NOT_FOUND),
     INVALID_SIGNATURE(1019, "Invalid signature", HttpStatus.BAD_REQUEST),
+    BRAND_EXISTED(1020, "Brand existed", HttpStatus.BAD_REQUEST),
+    BRAND_NOT_FOUND(1021, "Brand not found", HttpStatus.NOT_FOUND),
     ;
 
     int code;

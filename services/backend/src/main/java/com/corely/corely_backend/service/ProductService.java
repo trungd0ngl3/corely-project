@@ -95,6 +95,20 @@ public class ProductService {
                 .map(productMapper::toProductResponse);
     }
 
+    @Transactional
+    public ProductResponse updateProduct(UUID id, ProductCreationRequest request) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+        productMapper.updateProduct(product, request);
+        return productMapper.toProductResponse(productRepository.save(product));
+    }
+
+    @Transactional
+    public void deleteProduct(UUID id) {
+        if (!productRepository.existsById(id)) throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
+        productRepository.deleteById(id);
+    }
+
     private String generateSlug(String name) {
         String slug = name.toLowerCase().replaceAll("[^a-z0-9]+", "-");
         int count = 1;

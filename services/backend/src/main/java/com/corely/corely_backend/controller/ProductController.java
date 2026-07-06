@@ -55,4 +55,17 @@ public class ProductController {
                 .result(productService.getProductsByStore(storeId, page, size))
                 .build();
     }
+
+    @PutMapping("/{id}")
+    public ApiResponse<ProductResponse> updateProduct(@PathVariable UUID id, @RequestBody @Valid ProductCreationRequest request) {
+        return ApiResponse.<ProductResponse>builder()
+                .result(productService.updateProduct(id, request))
+                .build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> deleteProduct(@PathVariable UUID id) {
+        productService.deleteProduct(id);
+        return ApiResponse.<Void>builder().build();
+    }
 }
