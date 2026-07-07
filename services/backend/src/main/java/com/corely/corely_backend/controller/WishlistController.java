@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -18,21 +17,21 @@ public class WishlistController {
     WishlistService wishlistService;
 
     @GetMapping
-    public ApiResponse<List<WishlistResponse>> getMyWishlist() {
-        return ApiResponse.<List<WishlistResponse>>builder()
+    public ApiResponse<WishlistResponse> getMyWishlist() {
+        return ApiResponse.<WishlistResponse>builder()
                 .result(wishlistService.getMyWishlist())
                 .build();
     }
 
     @PostMapping("/{productId}")
-    public ApiResponse<Void> addToWishlist(@PathVariable String productId) {
-        wishlistService.addToWishlist(UUID.fromString(productId));
+    public ApiResponse<Void> addToWishlist(@PathVariable UUID productId) {
+        wishlistService.addToWishlist(productId);
         return ApiResponse.<Void>builder().build();
     }
 
     @DeleteMapping("/{productId}")
-    public ApiResponse<Void> removeFromWishlist(@PathVariable String productId) {
-        wishlistService.removeFromWishlist(UUID.fromString(productId));
+    public ApiResponse<Void> removeFromWishlist(@PathVariable UUID productId) {
+        wishlistService.removeFromWishlist(productId);
         return ApiResponse.<Void>builder().build();
     }
 }

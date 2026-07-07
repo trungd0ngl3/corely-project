@@ -17,15 +17,17 @@ import com.corely.corely_backend.repository.StoreRepository;
 import com.corely.corely_backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -46,11 +48,11 @@ public class OrderService {
         User user = userRepository.findById(UUID.fromString(userIdStr))
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        Store store = storeRepository.findById(request.getStoreId())
+        Store store = storeRepository.findTopBy()
                 .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
 
         CartResponse cart = cartService.getCart();
-        List<CartItemResponse> storeItems = cart.getItemsByStore().get(request.getStoreId());
+        List<CartItemResponse> storeItems = cart.getItems();
 
         if (storeItems == null || storeItems.isEmpty()) {
             throw new AppException(ErrorCode.CART_EMPTY); // Need to define this error code
@@ -79,10 +81,17 @@ public class OrderService {
                         .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
             }
 
-            // Check stock and reduce
+            if (!product.getIsActive() || (variant != null && !variant.getIsActive())) {
+                throw new AppException(ErrorCode.PRODUCT_NOT_AVAILABLE);
+            }
+
+            BigDecimal currentPrice = (variant != null) ? variant.getPrice() : product.getPrice();
+
             if (variant != null) {
+                // Use PESSIMISTIC_WRITE via repository if possible, or @Version on entity
+                // For now, ensure we fetch fresh state
                 if (variant.getStockQuantity() < itemResponse.getQuantity()) {
-                    throw new AppException(ErrorCode.OUT_OF_STOCK); // Need to define
+                    throw new AppException(ErrorCode.OUT_OF_STOCK);
                 }
                 variant.setStockQuantity(variant.getStockQuantity() - itemResponse.getQuantity());
                 productVariantRepository.save(variant);
@@ -99,49 +108,84 @@ public class OrderService {
             orderItem.setProduct(product);
             orderItem.setVariant(variant);
             orderItem.setQuantity(itemResponse.getQuantity());
-            orderItem.setPrice(itemResponse.getPrice());
+            orderItem.setPrice(currentPrice);
+            orderItem.setProductName(product.getName());
+            orderItem.setVariantName(variant != null ? variant.getName() : null);
+            orderItem.setImageUrl(product.getImages().isEmpty() ? null : String.valueOf(product.getImages().get(0)));
+            orderItem.setSku(variant != null ? variant.getSku() : product.getSku());
 
-            BigDecimal subTotal = itemResponse.getPrice().multiply(BigDecimal.valueOf(itemResponse.getQuantity()));
-            totalAmount = totalAmount.add(subTotal);
-
+            totalAmount = totalAmount.add(currentPrice.multiply(BigDecimal.valueOf(itemResponse.getQuantity())));
             orderItems.add(orderItem);
-
-            // Remove from cart
-            cartService.removeFromCart(product.getId(), variant != null ? variant.getId() : null);
         }
 
         order.setItems(orderItems);
+        order.setSubtotal(totalAmount);
         order.setTotalAmount(totalAmount);
+
+        // Clear cart after commit
+        TransactionSynchronizationManager.registerSynchronization(
+            new org.springframework.transaction.support.TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    for (CartItemResponse item : storeItems) {
+                        cartService.removeFromCart(item.getProductId(), item.getVariantId());
+                    }
+                }
+            }
+        );
 
         order = orderRepository.save(order);
 
         return orderMapper.toOrderResponse(order);
     }
 
-    public List<OrderResponse> getMyOrders() {
+    public Page<OrderResponse> getMyOrder(Pageable pageable) {
         String userIdStr = SecurityContextHolder.getContext().getAuthentication().getName();
-        List<Order> orders = orderRepository.findByUserId(UUID.fromString(userIdStr));
-        return orders.stream().map(orderMapper::toOrderResponse).collect(Collectors.toList());
+        return orderRepository.findByUserIdOrderByCreatedAtDesc(UUID.fromString(userIdStr), pageable)
+                .map(orderMapper::toOrderResponse);
     }
 
-    public List<OrderResponse> getStoreOrders(UUID storeId) {
-        String userIdStr = SecurityContextHolder.getContext().getAuthentication().getName();
-        Store store = storeRepository.findById(storeId)
+    public Page<OrderResponse> getStoreOrder(Pageable pageable) {
+        Store store = storeRepository.findTopBy()
                 .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
 
-        if (!store.getOwner().getId().toString().equals(userIdStr)) {
-            throw new AppException(ErrorCode.UNAUTHORIZED); // Only owner can view
+        return orderRepository.findByStoreIdOrderByCreatedAtDesc(store.getId(), pageable)
+                .map(orderMapper::toOrderResponse);
+    }
+
+    public OrderResponse getOrderById(UUID orderId) {
+        String userIdStr = SecurityContextHolder.getContext().getAuthentication().getName();
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+
+        boolean isOwner = order.getUser().getId().toString().equals(userIdStr);
+        boolean isAdmin = userRepository.findById(UUID.fromString(userIdStr))
+                .map(u -> u.getRoles().stream().anyMatch(r -> r.getName().equals("ADMIN")))
+                .orElse(false);
+
+        if (!isOwner && !isAdmin) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
-        List<Order> orders = orderRepository.findByStoreId(storeId);
-        return orders.stream().map(orderMapper::toOrderResponse).collect(Collectors.toList());
+        return orderMapper.toOrderResponse(order);
     }
 
     public OrderResponse updateOrderStatus(UUID orderId, OrderStatus status) {
+        String userIdStr = SecurityContextHolder.getContext().getAuthentication().getName();
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND)); // Need to define
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
 
-        // Add authorization check here if needed (e.g. only store owner can update)
+        boolean isAdmin = userRepository.findById(UUID.fromString(userIdStr))
+                .map(u -> u.getRoles().stream().anyMatch(r -> r.getName().equals("ADMIN")))
+                .orElse(false);
+
+        if (!isAdmin) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        if (!order.getStatus().canTransitionTo(status)) {
+            throw new AppException(ErrorCode.INVALID_ORDER_STATUS_TRANSITION);
+        }
 
         order.setStatus(status);
         order = orderRepository.save(order);
@@ -149,7 +193,6 @@ public class OrderService {
     }
 
     private String generateOrderCode() {
-        // Simple implementation, could be more robust
         return "ORD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
 }

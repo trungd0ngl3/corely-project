@@ -5,8 +5,6 @@ import com.corely.corely_backend.dto.response.dashboard.RevenueChartResponse;
 import com.corely.corely_backend.dto.response.order.OrderResponse;
 import com.corely.corely_backend.dto.response.product.ProductResponse;
 import com.corely.corely_backend.entity.Order;
-import com.corely.corely_backend.entity.OrderItem;
-import com.corely.corely_backend.entity.Product;
 import com.corely.corely_backend.enums.OrderStatus;
 import com.corely.corely_backend.mapper.OrderMapper;
 import com.corely.corely_backend.mapper.ProductMapper;
@@ -34,46 +32,28 @@ public class DashboardService {
         private final ProductMapper productMapper;
 
         public DashboardStatsResponse getDashboardStats() {
-                log.info("Calculating dashboard stats");
+                log.debug("Calculating dashboard stats");
 
-                // Total revenue from delivered orders
-                BigDecimal totalRevenue = orderRepository.findAll().stream()
-                                .filter(order -> order.getStatus() == OrderStatus.DELIVERED)
-                                .map(Order::getTotalPrice)
-                                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                BigDecimal totalRevenue = orderRepository.sumRevenueDelivered();
+                long totalOrder = orderRepository.count();
+                long totalProducts = productRepository.count();
+                long totalCustomers = userRepository.count();
+                long pendingOrder = orderRepository.countByStatus(OrderStatus.PENDING);
+                long completedOrder = orderRepository.countByStatus(OrderStatus.DELIVERED);
 
-                // Total counts
-                Long totalOrders = orderRepository.count();
-                Long totalProducts = productRepository.count();
-                Long totalCustomers = userRepository.count();
-
-                // Pending and delivered orders
-                Long pendingOrders = orderRepository.findAll().stream()
-                                .filter(order -> order.getStatus() == OrderStatus.PENDING)
-                                .count();
-                Long completedOrders = orderRepository.findAll().stream()
-                                .filter(order -> order.getStatus() == OrderStatus.DELIVERED)
-                                .count();
-
-                // Average order value
-                Double averageOrderValue = totalOrders > 0
-                                ? totalRevenue.doubleValue() / totalOrders
-                                : 0.0;
-
-                // Conversion rate (completed / total)
-                Double conversionRate = totalOrders > 0
-                                ? (completedOrders * 100.0) / totalOrders
-                                : 0.0;
+                BigDecimal averageOrderValue = completedOrder > 0
+                                ? totalRevenue.divide(BigDecimal.valueOf(completedOrder), 2, java.math.RoundingMode.HALF_UP)
+                                : BigDecimal.ZERO;
 
                 return DashboardStatsResponse.builder()
                                 .totalRevenue(totalRevenue)
-                                .totalOrders(totalOrders)
+                                .totalOrder(totalOrder)
                                 .totalProducts(totalProducts)
                                 .totalCustomers(totalCustomers)
                                 .averageOrderValue(averageOrderValue)
-                                .conversionRate(conversionRate)
-                                .pendingOrders(pendingOrders)
-                                .completedOrders(completedOrders)
+                                .orderCompletionRate(totalOrder > 0 ? (completedOrder * 100.0) / totalOrder : 0.0)
+                                .pendingOrder(pendingOrder)
+                                .completedOrder(completedOrder)
                                 .build();
         }
 
@@ -83,22 +63,22 @@ public class DashboardService {
                 LocalDate startDate = LocalDate.now().minusDays(days);
                 LocalDateTime startDateTime = startDate.atStartOfDay();
 
-                List<Order> orders = orderRepository.findAll().stream()
+                List<Order> Order = orderRepository.findAll().stream()
                                 .filter(order -> order.getCreatedAt().isAfter(startDateTime))
                                 .collect(Collectors.toList());
 
-                return orders.stream()
+                return Order.stream()
                                 .collect(Collectors.groupingBy(order -> order.getCreatedAt().toLocalDate()))
                                 .entrySet()
                                 .stream()
                                 .map(entry -> {
                                         LocalDate date = entry.getKey();
-                                        List<Order> dayOrders = entry.getValue();
-                                        BigDecimal dayRevenue = dayOrders.stream()
+                                        List<Order> dayOrder = entry.getValue();
+                                        BigDecimal dayRevenue = dayOrder.stream()
                                                         .filter(order -> order.getStatus() == OrderStatus.DELIVERED)
-                                                        .map(Order::getTotalPrice)
+                                                        .map(order -> order.getTotalAmount() != null ? order.getTotalAmount() : BigDecimal.ZERO)
                                                         .reduce(BigDecimal.ZERO, BigDecimal::add);
-                                        Long orderCount = (long) dayOrders.size();
+                                        Long orderCount = (long) dayOrder.size();
                                         BigDecimal avgValue = orderCount > 0
                                                         ? dayRevenue.divide(BigDecimal.valueOf(orderCount))
                                                         : BigDecimal.ZERO;
@@ -123,11 +103,10 @@ public class DashboardService {
                                 .collect(Collectors.toList());
         }
 
-        public List<OrderResponse> getRecentOrders(int limit) {
-                log.info("Getting recent {} orders", limit);
+        public List<OrderResponse> getRecentOrder(int limit) {
+                log.debug("Getting recent {} Order", limit);
 
-                return orderRepository.findAll().stream()
-                                .sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()))
+                return orderRepository.findTop10ByOrderByCreatedAtDesc().stream()
                                 .limit(limit)
                                 .map(orderMapper::toOrderResponse)
                                 .collect(Collectors.toList());

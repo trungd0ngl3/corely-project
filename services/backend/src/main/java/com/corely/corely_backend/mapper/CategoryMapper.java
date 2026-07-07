@@ -1,6 +1,6 @@
 package com.corely.corely_backend.mapper;
 
-import com.corely.corely_backend.dto.request.CategoryRequest;
+import com.corely.corely_backend.dto.request.product.CategoryRequest;
 import com.corely.corely_backend.dto.response.CategoryResponse;
 import com.corely.corely_backend.entity.Category;
 import org.mapstruct.Mapper;

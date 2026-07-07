@@ -2,6 +2,8 @@ package com.corely.corely_backend.dto.response;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -9,7 +11,10 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class BrandResponse {
-    Long id;
+    UUID id;
     String name;
     String slug;
+    Boolean isActive;
+    LocalDateTime createdAt;
+    LocalDateTime updatedAt;
 }

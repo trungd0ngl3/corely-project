@@ -13,11 +13,11 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class DashboardStatsResponse {
     private BigDecimal totalRevenue;
-    private Long totalOrders;
+    private Long totalOrder;
     private Long totalProducts;
     private Long totalCustomers;
-    private Double averageOrderValue;
-    private Double conversionRate;
-    private Long pendingOrders;
-    private Long completedOrders;
+    private BigDecimal averageOrderValue;
+    private Double orderCompletionRate;
+    private Long pendingOrder;
+    private Long completedOrder;
 }

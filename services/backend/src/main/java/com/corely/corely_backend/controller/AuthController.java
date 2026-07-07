@@ -1,6 +1,7 @@
 package com.corely.corely_backend.controller;
 
 import com.corely.corely_backend.dto.request.auth.*;
+import com.corely.corely_backend.dto.request.auth.UserCreationRequest;
 import com.corely.corely_backend.dto.response.ApiResponse;
 import com.corely.corely_backend.dto.response.auth.AuthenticateResponse;
 import com.corely.corely_backend.dto.response.auth.IntrospectResponse;
@@ -31,7 +32,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    ApiResponse<AuthenticateResponse> login(@RequestBody AuthenticateRequest request) {
+    ApiResponse<AuthenticateResponse> login(@RequestBody @Valid AuthenticateRequest request) {
         var result = authenticationService.authenticate(request);
         return ApiResponse.<AuthenticateResponse>builder()
                 .code(1000)
@@ -40,7 +41,7 @@ public class AuthController {
     }
 
     @PostMapping("/tokens/introspect")
-    ApiResponse<IntrospectResponse> introspect(@RequestBody IntrospectRequest request) {
+    ApiResponse<IntrospectResponse> introspect(@RequestBody @Valid IntrospectRequest request) {
         var result = authenticationService.introspect(request);
         return ApiResponse.<IntrospectResponse>builder()
                 .code(1000)
@@ -49,7 +50,7 @@ public class AuthController {
     }
 
     @PostMapping("/tokens/refresh")
-    ApiResponse<AuthenticateResponse> refresh(@RequestBody RefreshTokenRequest request)
+    ApiResponse<AuthenticateResponse> refresh(@RequestBody @Valid RefreshTokenRequest request)
             throws ParseException, JOSEException {
         var result = authenticationService.refreshToken(request.getToken());
         return ApiResponse.<AuthenticateResponse>builder()
@@ -58,8 +59,8 @@ public class AuthController {
                 .build();
     }
 
-    @DeleteMapping("/tokens")
-    ApiResponse<Void> logout(@RequestBody LogoutRequest request) throws ParseException, JOSEException {
+    @PostMapping("/tokens/logout")
+    ApiResponse<Void> logout(@RequestBody @Valid LogoutRequest request) throws ParseException, JOSEException {
         authenticationService.logout(request);
         return ApiResponse.<Void>builder()
                 .code(1000)

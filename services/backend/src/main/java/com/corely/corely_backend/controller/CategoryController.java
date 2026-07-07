@@ -1,15 +1,17 @@
 package com.corely.corely_backend.controller;
 
-import com.corely.corely_backend.dto.request.CategoryRequest;
+import com.corely.corely_backend.dto.request.product.CategoryRequest;
 import com.corely.corely_backend.dto.response.ApiResponse;
 import com.corely.corely_backend.dto.response.CategoryResponse;
 import com.corely.corely_backend.service.CategoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/categories")
@@ -25,14 +27,15 @@ public class CategoryController {
                 .build();
     }
 
-    @GetMapping("/{id}")
-    public ApiResponse<CategoryResponse> getCategory(@PathVariable String id) {
+    @GetMapping("/{slug}")
+    public ApiResponse<CategoryResponse> getCategory(@PathVariable String slug) {
         return ApiResponse.<CategoryResponse>builder()
-                .result(categoryService.getCategory(id))
+                .result(categoryService.getCategory(slug))
                 .build();
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<CategoryResponse> createCategory(@RequestBody @Valid CategoryRequest request) {
         return ApiResponse.<CategoryResponse>builder()
                 .result(categoryService.createCategory(request))
@@ -40,14 +43,16 @@ public class CategoryController {
     }
 
     @PutMapping("/{id}")
-    public ApiResponse<CategoryResponse> updateCategory(@PathVariable String id, @RequestBody @Valid CategoryRequest request) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<CategoryResponse> updateCategory(@PathVariable UUID id, @RequestBody @Valid CategoryRequest request) {
         return ApiResponse.<CategoryResponse>builder()
                 .result(categoryService.updateCategory(id, request))
                 .build();
     }
 
     @DeleteMapping("/{id}")
-    public ApiResponse<Void> deleteCategory(@PathVariable String id) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Void> deleteCategory(@PathVariable UUID id) {
         categoryService.deleteCategory(id);
         return ApiResponse.<Void>builder().build();
     }

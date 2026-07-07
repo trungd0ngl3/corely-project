@@ -11,5 +11,6 @@ import com.corely.corely_backend.entity.User;
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByEmail(String email);
+    Optional<User> findByEmailAndIsActiveTrue(String email);
     Boolean existsByEmail(String email);
 }

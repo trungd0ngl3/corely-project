@@ -1,5 +1,7 @@
-package com.corely.corely_backend.dto.request;
+package com.corely.corely_backend.dto.request.product;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -9,6 +11,10 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CategoryRequest {
+    @NotBlank
+    @Size(max = 100)
     String name;
+
+    @Size(max = 500)
     String description;
 }

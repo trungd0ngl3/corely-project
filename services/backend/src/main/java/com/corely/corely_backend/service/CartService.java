@@ -8,6 +8,7 @@ import com.corely.corely_backend.entity.ProductVariant;
 import com.corely.corely_backend.entity.Voucher;
 import com.corely.corely_backend.exception.AppException;
 import com.corely.corely_backend.exception.ErrorCode;
+import com.corely.corely_backend.mapper.CartMapper;
 import com.corely.corely_backend.repository.ProductRepository;
 import com.corely.corely_backend.repository.ProductVariantRepository;
 import com.corely.corely_backend.repository.VoucherRepository;
@@ -33,6 +34,8 @@ public class CartService {
     ProductRepository productRepository;
     ProductVariantRepository productVariantRepository;
     VoucherRepository voucherRepository;
+    UserService userService;
+    CartMapper cartMapper;
 
     static final String CART_PREFIX = "cart:";
     static final String VOUCHER_PREFIX = "cart_voucher:";
@@ -45,15 +48,22 @@ public class CartService {
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
 
-        int stock = getStock(product, request.getVariantId());
-        if (stock <= 0) throw new AppException(ErrorCode.OUT_OF_STOCK);
+        if (!product.getIsActive() || !product.getStore().getIsActive())
+            throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
 
+        if (!product.getVariants().isEmpty() && request.getVariantId() == null)
+            throw new AppException(ErrorCode.VARIANT_REQUIRED);
+
+        ProductVariant variant = null;
         if (request.getVariantId() != null) {
-            ProductVariant variant = productVariantRepository.findById(request.getVariantId())
+            variant = productVariantRepository.findById(request.getVariantId())
                     .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
             if (!variant.getProduct().getId().equals(product.getId()))
                 throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
         }
+
+        int stock = getStock(product, variant);
+        if (stock <= 0) throw new AppException(ErrorCode.OUT_OF_STOCK);
 
         HashOperations<String, String, Integer> hashOps = redisTemplate.opsForHash();
         Integer current = hashOps.get(cartKey, itemKey);
@@ -62,6 +72,7 @@ public class CartService {
         if (newQty > stock) throw new AppException(ErrorCode.OUT_OF_STOCK);
 
         hashOps.put(cartKey, itemKey, newQty);
+        redisTemplate.expire(cartKey, java.time.Duration.ofDays(30));
     }
 
     public void updateCartItem(CartItemRequest request) {
@@ -70,16 +81,28 @@ public class CartService {
         String itemKey = generateItemKey(request.getProductId(), request.getVariantId());
 
         HashOperations<String, String, Integer> hashOps = redisTemplate.opsForHash();
+        if (!hashOps.hasKey(cartKey, itemKey)) throw new AppException(ErrorCode.CART_ITEM_NOT_FOUND);
 
         if (request.getQuantity() <= 0) {
             hashOps.delete(cartKey, itemKey);
             return;
         }
 
-        // Stock check
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
-        int stock = getStock(product, request.getVariantId());
+
+        if (!product.getIsActive() || !product.getStore().getIsActive())
+            throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
+
+        ProductVariant variant = null;
+        if (request.getVariantId() != null) {
+            variant = productVariantRepository.findById(request.getVariantId())
+                    .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+            if (!variant.getProduct().getId().equals(product.getId()))
+                throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
+        }
+
+        int stock = getStock(product, variant);
         if (request.getQuantity() > stock) throw new AppException(ErrorCode.OUT_OF_STOCK);
 
         hashOps.put(cartKey, itemKey, request.getQuantity());
@@ -105,6 +128,19 @@ public class CartService {
         HashOperations<String, String, Integer> hashOps = redisTemplate.opsForHash();
         Map<String, Integer> cartItems = hashOps.entries(cartKey);
 
+        Set<UUID> productIds = new HashSet<>();
+        Set<UUID> variantIds = new HashSet<>();
+        for (String key : cartItems.keySet()) {
+            String[] ids = key.split("_");
+            productIds.add(UUID.fromString(ids[0]));
+            if (!ids[1].equals("null")) variantIds.add(UUID.fromString(ids[1]));
+        }
+
+        Map<UUID, Product> productMap = productRepository.findAllById(productIds).stream()
+                .collect(Collectors.toMap(Product::getId, p -> p));
+        Map<UUID, ProductVariant> variantMap = productVariantRepository.findAllById(variantIds).stream()
+                .collect(Collectors.toMap(ProductVariant::getId, v -> v));
+
         List<CartItemResponse> itemResponses = new ArrayList<>();
         BigDecimal totalAmount = BigDecimal.ZERO;
         int totalItems = 0;
@@ -115,39 +151,22 @@ public class CartService {
             UUID variantId = !ids[1].equals("null") ? UUID.fromString(ids[1]) : null;
             Integer quantity = entry.getValue();
 
-            Product product = productRepository.findById(productId).orElse(null);
-            if (product == null || !product.getIsActive()) continue;
-
-            ProductVariant variant = null;
-            if (variantId != null) {
-                variant = productVariantRepository.findById(variantId).orElse(null);
-                if (variant == null) continue;
+            Product product = productMap.get(productId);
+            if (product == null || !product.getIsActive() || !product.getStore().getIsActive()) {
+                hashOps.delete(cartKey, entry.getKey());
+                continue;
             }
 
-            BigDecimal price = variant != null ? variant.getPrice() : product.getPrice();
-            BigDecimal subtotal = price.multiply(BigDecimal.valueOf(quantity));
-            int stock = variant != null ? variant.getStockQuantity() : product.getStockQuantity();
-            String imageUrl = product.getImages() != null && !product.getImages().isEmpty()
-                    ? product.getImages().get(0).getImageUrl()
-                    : null;
+            ProductVariant variant = variantId != null ? variantMap.get(variantId) : null;
+            if (variantId != null && (variant == null || !variant.getProduct().getId().equals(product.getId()))) {
+                hashOps.delete(cartKey, entry.getKey());
+                continue;
+            }
 
-            CartItemResponse itemResponse = CartItemResponse.builder()
-                    .productId(product.getId())
-                    .variantId(variantId)
-                    .productName(product.getName())
-                    .variantName(variant != null ? variant.getName() : null)
-                    .imageUrl(imageUrl)
-                    .price(price)
-                    .quantity(quantity)
-                    .subtotal(subtotal)
-                    .inStock(stock >= quantity)
-                    .availableStock(stock)
-                    .storeId(product.getStore().getId())
-                    .storeName(product.getStore().getName())
-                    .build();
+            CartItemResponse itemResponse = cartMapper.toResponse(product, variant, quantity);
 
             itemResponses.add(itemResponse);
-            totalAmount = totalAmount.add(subtotal);
+            totalAmount = totalAmount.add(itemResponse.getSubtotal());
             totalItems += quantity;
         }
 
@@ -181,11 +200,16 @@ public class CartService {
     }
 
     public CartResponse applyVoucher(String voucherCode) {
-        // Validate voucher exists and is valid
-        validateVoucher(voucherCode);
-
         String userId = getCurrentUserId();
-        redisTemplate.opsForValue().set(VOUCHER_PREFIX + userId, voucherCode);
+        if (redisTemplate.opsForHash().entries(CART_PREFIX + userId).isEmpty())
+            throw new AppException(ErrorCode.CART_EMPTY);
+
+        Voucher voucher = validateVoucher(voucherCode);
+        BigDecimal totalAmount = getCart().getTotalAmount();
+        if (voucher.getMinOrderValue() != null && totalAmount.compareTo(voucher.getMinOrderValue()) < 0)
+            throw new AppException(ErrorCode.INVALID_VOUCHER);
+
+        redisTemplate.opsForValue().set(VOUCHER_PREFIX + userId, voucherCode, java.time.Duration.ofDays(30));
 
         return getCart();
     }
@@ -203,7 +227,7 @@ public class CartService {
                 .collect(Collectors.toList());
     }
 
-    private void validateVoucher(String code) {
+    private Voucher validateVoucher(String code) {
         Voucher voucher = voucherRepository.findByCode(code)
                 .orElseThrow(() -> new AppException(ErrorCode.INVALID_VOUCHER));
 
@@ -214,13 +238,11 @@ public class CartService {
                 || (voucher.getUsageLimit() != null && voucher.getUsedCount() >= voucher.getUsageLimit())) {
             throw new AppException(ErrorCode.INVALID_VOUCHER);
         }
+        return voucher;
     }
 
     private BigDecimal calculateDiscount(String code, BigDecimal totalAmount) {
-        Voucher voucher = voucherRepository.findByCode(code)
-                .orElseThrow(() -> new AppException(ErrorCode.INVALID_VOUCHER));
-
-        validateVoucher(code);
+        Voucher voucher = validateVoucher(code);
 
         if (voucher.getMinOrderValue() != null && totalAmount.compareTo(voucher.getMinOrderValue()) < 0) {
             return BigDecimal.ZERO;
@@ -248,19 +270,18 @@ public class CartService {
         return discount;
     }
 
-    private int getStock(Product product, UUID variantId) {
-        if (variantId != null) {
-            ProductVariant variant = productVariantRepository.findById(variantId).orElse(null);
-            return variant != null ? variant.getStockQuantity() : 0;
+    private int getStock(Product product, ProductVariant variant) {
+        if (variant != null) {
+            return variant.getStockQuantity() != null ? variant.getStockQuantity() : 0;
         }
         return product.getStockQuantity() != null ? product.getStockQuantity() : 0;
     }
 
     private String generateItemKey(UUID productId, UUID variantId) {
-        return productId.toString() + "_" + (variantId != null ? variantId.toString() : "null");
+        return String.join(":", productId.toString(), variantId != null ? variantId.toString() : "0");
     }
 
     private String getCurrentUserId() {
-        return SecurityContextHolder.getContext().getAuthentication().getName();
+        return userService.getCurrentUser().getId().toString();
     }
 }

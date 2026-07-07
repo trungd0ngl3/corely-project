@@ -12,8 +12,12 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.corely.corely_backend.dto.response.ApiResponse;
+import com.corely.corely_backend.dto.response.order.OrderResponse;
+import com.corely.corely_backend.dto.response.product.ProductResponse;
+
 @RestController
-@RequestMapping("/api/v1/dashboard")
+@RequestMapping("/api/v1/admin/dashboard")
 @RequiredArgsConstructor
 @Slf4j
 public class DashboardController {
@@ -21,36 +25,41 @@ public class DashboardController {
     private final DashboardService dashboardService;
 
     @GetMapping("/summary")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STORE_OWNER')")
-    public ResponseEntity<DashboardStatsResponse> getDashboardSummary() {
-        log.info("Getting dashboard summary");
-        DashboardStatsResponse stats = dashboardService.getDashboardStats();
-        return ResponseEntity.ok(stats);
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<DashboardStatsResponse> getDashboardSummary() {
+        log.debug("Getting dashboard summary");
+        return ApiResponse.<DashboardStatsResponse>builder()
+                .result(dashboardService.getDashboardStats())
+                .build();
     }
 
     @GetMapping("/revenues")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STORE_OWNER')")
-    public ResponseEntity<List<RevenueChartResponse>> getRevenues(
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<List<RevenueChartResponse>> getRevenues(
             @RequestParam(defaultValue = "7") int days) {
-        log.info("Getting revenues for last {} days", days);
-        List<RevenueChartResponse> revenueData = dashboardService.getRevenueChart(days);
-        return ResponseEntity.ok(revenueData);
+        log.debug("Getting revenues for last {} days", days);
+        return ApiResponse.<List<RevenueChartResponse>>builder()
+                .result(dashboardService.getRevenueChart(days))
+                .build();
     }
 
     @GetMapping("/products/top")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STORE_OWNER')")
-    public ResponseEntity<List<?>> getTopProducts(
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<List<ProductResponse>> getTopProducts(
             @RequestParam(defaultValue = "10") int limit) {
-        log.info("Getting top {} products", limit);
-        return ResponseEntity.ok(dashboardService.getTopProducts(limit));
+        log.debug("Getting top {} products", limit);
+        return ApiResponse.<List<ProductResponse>>builder()
+                .result(dashboardService.getTopProducts(limit))
+                .build();
     }
 
-    @GetMapping("/orders")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STORE_OWNER')")
-    public ResponseEntity<List<?>> getRecentOrders(
-            @RequestParam(defaultValue = "10") int limit,
-            @RequestParam(defaultValue = "recent") String sort) {
-        log.info("Getting {} orders sorted by {}", limit, sort);
-        return ResponseEntity.ok(dashboardService.getRecentOrders(limit));
+    @GetMapping("/Order")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<List<OrderResponse>> getRecentOrder(
+            @RequestParam(defaultValue = "10") int limit) {
+        log.debug("Getting recent {} Order", limit);
+        return ApiResponse.<List<OrderResponse>>builder()
+                .result(dashboardService.getRecentOrder(limit))
+                .build();
     }
 }

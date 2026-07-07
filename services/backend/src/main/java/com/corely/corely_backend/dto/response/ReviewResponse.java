@@ -2,6 +2,8 @@ package com.corely.corely_backend.dto.response;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -9,8 +11,11 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ReviewResponse {
-    String id;
-    int rating;
+    UUID id;
+    Integer rating;
     String comment;
     String userName;
+    String avatarUrl;
+    LocalDateTime createdAt;
+    LocalDateTime updatedAt;
 }

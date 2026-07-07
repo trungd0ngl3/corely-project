@@ -1,8 +1,9 @@
 package com.corely.corely_backend.service;
 
-import com.corely.corely_backend.dto.request.AddressRequest;
+import com.corely.corely_backend.dto.request.user.AddressRequest;
 import com.corely.corely_backend.dto.response.AddressResponse;
 import com.corely.corely_backend.entity.Address;
+import com.corely.corely_backend.entity.User;
 import com.corely.corely_backend.exception.AppException;
 import com.corely.corely_backend.exception.ErrorCode;
 import com.corely.corely_backend.mapper.AddressMapper;
@@ -26,54 +27,67 @@ public class AddressService {
     UserRepository userRepository;
     AddressMapper addressMapper;
 
+    @Transactional(readOnly = true)
     public List<AddressResponse> getMyAddresses() {
-        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        return addressRepository.findByUserId(userId).stream()
+        return addressRepository.findByUserId(getCurrentUser().getId()).stream()
                 .map(addressMapper::toAddressResponse)
                 .collect(Collectors.toList());
     }
 
     @Transactional
     public AddressResponse createAddress(AddressRequest request) {
-        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = getCurrentUser();
+        if (Boolean.TRUE.equals(request.getIsDefault())) {
+            addressRepository.resetDefault(user.getId());
+        }
         Address address = addressMapper.toAddress(request);
-        address.setUser(userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND)));
-        if (Boolean.TRUE.equals(request.getIsDefault())) resetDefault(userId);
+        address.setUser(user);
         return addressMapper.toAddressResponse(addressRepository.save(address));
     }
 
     @Transactional
     public AddressResponse updateAddress(UUID id, AddressRequest request) {
-        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        Address address = addressRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.ADDRESS_NOT_FOUND));
-        if (!address.getUser().getId().equals(userId)) throw new AppException(ErrorCode.UNAUTHORIZED);
-        if (Boolean.TRUE.equals(request.getIsDefault())) resetDefault(userId);
+        Address address = addressRepository.findByIdAndUserId(id, getCurrentUser().getId())
+                .orElseThrow(() -> new AppException(ErrorCode.ADDRESS_NOT_FOUND));
+        
+        if (Boolean.TRUE.equals(request.getIsDefault()) && !Boolean.TRUE.equals(address.getIsDefault())) {
+            addressRepository.resetDefault(getCurrentUser().getId());
+        }
+        
         addressMapper.updateAddress(address, request);
         return addressMapper.toAddressResponse(addressRepository.save(address));
     }
 
     @Transactional
     public void deleteAddress(UUID id) {
-        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        Address address = addressRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.ADDRESS_NOT_FOUND));
-        if (!address.getUser().getId().equals(userId)) throw new AppException(ErrorCode.UNAUTHORIZED);
+        Address address = addressRepository.findByIdAndUserId(id, getCurrentUser().getId())
+                .orElseThrow(() -> new AppException(ErrorCode.ADDRESS_NOT_FOUND));
+        
+        boolean wasDefault = Boolean.TRUE.equals(address.getIsDefault());
         addressRepository.delete(address);
+        
+        if (wasDefault) {
+            List<Address> remaining = addressRepository.findByUserId(getCurrentUser().getId());
+            if (!remaining.isEmpty()) {
+                Address next = remaining.get(0);
+                next.setIsDefault(true);
+                addressRepository.save(next);
+            }
+        }
     }
 
     @Transactional
     public void setDefault(UUID id) {
-        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        Address address = addressRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.ADDRESS_NOT_FOUND));
-        if (!address.getUser().getId().equals(userId)) throw new AppException(ErrorCode.UNAUTHORIZED);
-        resetDefault(userId);
+        addressRepository.resetDefault(getCurrentUser().getId());
+        Address address = addressRepository.findByIdAndUserId(id, getCurrentUser().getId())
+                .orElseThrow(() -> new AppException(ErrorCode.ADDRESS_NOT_FOUND));
         address.setIsDefault(true);
         addressRepository.save(address);
     }
 
-    private void resetDefault(String userId) {
-        addressRepository.findByUserId(userId).forEach(a -> {
-            a.setIsDefault(false);
-            addressRepository.save(a);
-        });
+    private User getCurrentUser() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     }
 }

@@ -1,6 +1,6 @@
 package com.corely.corely_backend.mapper;
 
-import com.corely.corely_backend.dto.request.BrandRequest;
+import com.corely.corely_backend.dto.request.product.BrandRequest;
 import com.corely.corely_backend.dto.response.BrandResponse;
 import com.corely.corely_backend.entity.Brand;
 import org.mapstruct.Mapper;

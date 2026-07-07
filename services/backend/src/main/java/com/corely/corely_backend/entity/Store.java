@@ -22,7 +22,7 @@ public class Store extends BaseEntity {
     @Column(nullable = false)
     private String name;
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false, unique = true)
     private String slug;
 
     private String logoUrl;
@@ -32,14 +32,21 @@ public class Store extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    private String contactPhone;
+
+    private String contactEmail;
+
+    private String address;
+
+    @Builder.Default
     private Boolean isActive = true;
 
-    private Boolean isApproved = false;
+    @Builder.Default
+    private Boolean isVerified = true;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "owner_id", nullable = false)
-    private User owner;
+    @Builder.Default
+    private Double rating = 5.0;
 
-    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "store")
     private List<Product> products;
 }

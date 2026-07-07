@@ -26,8 +26,11 @@ public class ProductResponse {
     String thumbnailUrl;
     Boolean isActive;
     UUID storeId;
-    Long categoryId;
-    Long brandId;
+    String storeName;
+    UUID categoryId;
+    String categoryName;
+    UUID brandId;
+    String brandName;
     List<String> imageUrls;
     List<ProductVariantResponse> variants;
     LocalDateTime createdAt;

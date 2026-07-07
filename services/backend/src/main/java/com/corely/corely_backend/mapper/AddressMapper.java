@@ -1,6 +1,6 @@
 package com.corely.corely_backend.mapper;
 
-import com.corely.corely_backend.dto.request.AddressRequest;
+import com.corely.corely_backend.dto.request.user.AddressRequest;
 import com.corely.corely_backend.dto.response.AddressResponse;
 import com.corely.corely_backend.entity.Address;
 import org.mapstruct.Mapper;

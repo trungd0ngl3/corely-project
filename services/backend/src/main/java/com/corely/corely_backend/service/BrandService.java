@@ -1,6 +1,6 @@
 package com.corely.corely_backend.service;
 
-import com.corely.corely_backend.dto.request.BrandRequest;
+import com.corely.corely_backend.dto.request.product.BrandRequest;
 import com.corely.corely_backend.dto.response.BrandResponse;
 import com.corely.corely_backend.entity.Brand;
 import com.corely.corely_backend.exception.AppException;
@@ -12,7 +12,11 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.Normalizer;
 import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,34 +26,54 @@ public class BrandService {
     BrandRepository brandRepository;
     BrandMapper brandMapper;
 
+    private static final Pattern NONLATIN = Pattern.compile("[^\\w-]");
+    private static final Pattern WHITESPACE = Pattern.compile("[\\s]");
+
+    @Transactional(readOnly = true)
     public List<BrandResponse> getAllBrands() {
-        return brandRepository.findAll().stream()
+        return brandRepository.findByIsActiveTrue().stream()
                 .map(brandMapper::toBrandResponse)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public BrandResponse getBrand(String slug) {
+        return brandMapper.toBrandResponse(brandRepository.findBySlug(slug)
+                .orElseThrow(() -> new AppException(ErrorCode.BRAND_NOT_FOUND)));
+    }
+
     @Transactional
     public BrandResponse createBrand(BrandRequest request) {
-        if (brandRepository.existsByName(request.getName())) throw new AppException(ErrorCode.BRAND_EXISTED);
+        String slug = generateSlug(request.getName());
+        if (brandRepository.existsBySlug(slug))
+            throw new AppException(ErrorCode.BRAND_EXISTED);
+        
         Brand brand = brandMapper.toBrand(request);
-        brand.setSlug(generateSlug(request.getName()));
+        brand.setSlug(slug);
         return brandMapper.toBrandResponse(brandRepository.save(brand));
     }
 
     @Transactional
-    public BrandResponse updateBrand(Long id, BrandRequest request) {
-        Brand brand = brandRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.BRAND_NOT_FOUND));
+    public BrandResponse updateBrand(UUID id, BrandRequest request) {
+        Brand brand = brandRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.BRAND_NOT_FOUND));
+        
         brandMapper.updateBrand(brand, request);
         return brandMapper.toBrandResponse(brandRepository.save(brand));
     }
 
     @Transactional
-    public void deleteBrand(Long id) {
-        if (!brandRepository.existsById(id)) throw new AppException(ErrorCode.BRAND_NOT_FOUND);
-        brandRepository.deleteById(id);
+    public void deleteBrand(UUID id) {
+        Brand brand = brandRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.BRAND_NOT_FOUND));
+        brand.setIsActive(false);
+        brandRepository.save(brand);
     }
 
-    private String generateSlug(String name) {
-        return name.toLowerCase().replaceAll("[^a-z0-9]+", "-");
+    private String generateSlug(String input) {
+        String nowhitespace = WHITESPACE.matcher(input).replaceAll("-");
+        String normalized = Normalizer.normalize(nowhitespace, Normalizer.Form.NFD);
+        String slug = NONLATIN.matcher(normalized).replaceAll("");
+        return slug.toLowerCase(Locale.ENGLISH);
     }
 }

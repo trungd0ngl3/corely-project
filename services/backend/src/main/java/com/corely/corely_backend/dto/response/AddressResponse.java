@@ -2,6 +2,7 @@ package com.corely.corely_backend.dto.response;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -12,8 +13,10 @@ import java.util.UUID;
 public class AddressResponse {
     UUID id;
     String streetAddress;
-    String city;
-    String district;
     String ward;
+    String district;
+    String city;
     Boolean isDefault;
+    LocalDateTime createdAt;
+    LocalDateTime updatedAt;
 }

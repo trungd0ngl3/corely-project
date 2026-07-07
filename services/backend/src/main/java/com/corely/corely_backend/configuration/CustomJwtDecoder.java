@@ -27,7 +27,7 @@ public class CustomJwtDecoder implements JwtDecoder {
     InvalidatedTokenRepository invalidatedTokenRepository;
 
     @NonFinal
-    @Value("${jwt.signerKey}")
+    @Value("${jwt.signer-key}")
     String SIGNER_KEY;
 
     @Override
@@ -39,7 +39,7 @@ public class CustomJwtDecoder implements JwtDecoder {
                     .getAlgorithm()
                     .getName();
 
-            if (!"HS512".equals(algorithm) && !"HS256".equals(algorithm)) {
+            if (!"HS512".equals(algorithm)) {
                 throw new BadJwtException("Unsupported algorithm");
             }
 
@@ -51,6 +51,13 @@ public class CustomJwtDecoder implements JwtDecoder {
             }
 
             JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
+            
+            // Check type
+            String type = claimsSet.getStringClaim("type");
+            if (!"access".equals(type)) {
+                throw new BadJwtException("Invalid token type");
+            }
+
             // Check issuer
             String issuer = claimsSet.getIssuer();
 

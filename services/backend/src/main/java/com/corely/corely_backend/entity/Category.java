@@ -3,6 +3,7 @@ package com.corely.corely_backend.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import java.util.UUID;
 
 @Entity
 @Table(name = "categories")
@@ -12,13 +13,20 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Category {
+public class Category extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    String id;
+    UUID id;
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false, unique = true)
     String name;
 
+    @Column(nullable = false, unique = true)
+    String slug;
+
     String description;
+
+    @Builder.Default
+    Boolean isActive = true;
 }

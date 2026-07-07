@@ -34,10 +34,10 @@ public class WishlistService {
     WishlistMapper wishlistMapper;
 
     @Transactional(readOnly = true)
-    public List<WishlistResponse> getMyWishlist() {
-        return wishlistRepository.findByUserId(getCurrentUser().getId())
-                .map(w -> w.getItems().stream().map(wishlistMapper::toWishlistResponse).toList())
-                .orElse(List.of());
+    public WishlistResponse getMyWishlist() {
+        Wishlist wishlist = wishlistRepository.findByUserId(getCurrentUser().getId())
+                .orElseGet(() -> getOrCreateWishlist(getCurrentUser()));
+        return wishlistMapper.toWishlistResponse(wishlist);
     }
 
     @Transactional

@@ -32,4 +32,8 @@ public class OrderItem extends BaseEntity {
     private Integer quantity;
 
     private BigDecimal price; // Price at the time of order
+    private String productName;
+    private String variantName;
+    private String imageUrl;
+    private String sku;
 }

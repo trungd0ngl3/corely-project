@@ -10,10 +10,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * In-memory rate limiter per IP + endpoint prefix.
- * ponytail: per-instance only, no Redis. Add when scaling horizontally.
- */
 @Component
 public class RateLimitInterceptor implements HandlerInterceptor {
 

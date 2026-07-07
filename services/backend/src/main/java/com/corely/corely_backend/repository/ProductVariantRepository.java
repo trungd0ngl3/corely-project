@@ -8,4 +8,6 @@ import java.util.UUID;
 
 @Repository
 public interface ProductVariantRepository extends JpaRepository<ProductVariant, UUID> {
+    boolean existsBySku(String sku);
+    boolean existsBySkuAndIdNot(String sku, UUID id);
 }

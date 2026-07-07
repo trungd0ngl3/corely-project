@@ -2,24 +2,33 @@ package com.corely.corely_backend.dto.request.product;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.Builder;
-import lombok.Data;
+import jakarta.validation.constraints.PositiveOrZero;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
-
-@Data
+import java.util.UUID;
+@Getter
+@Setter
 @Builder
-@FieldDefaults(level = lombok.AccessLevel.PRIVATE)
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class ProductVariantRequest {
+
+    UUID id;
+
     @NotBlank(message = "VARIANT_NAME_REQUIRED")
     String name;
 
+    @NotBlank(message = "VARIANT_SKU_REQUIRED")
     String sku;
 
     @NotNull(message = "VARIANT_PRICE_REQUIRED")
+    @PositiveOrZero(message = "VARIANT_PRICE_INVALID")
     BigDecimal price;
 
+    @PositiveOrZero(message = "VARIANT_STOCK_INVALID")
     Integer stockQuantity;
 
     String imageUrl;

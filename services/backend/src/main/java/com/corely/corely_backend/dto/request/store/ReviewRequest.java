@@ -1,5 +1,6 @@
-package com.corely.corely_backend.dto.request;
+package com.corely.corely_backend.dto.request.store;
 
+import jakarta.validation.constraints.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -9,6 +10,12 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ReviewRequest {
-    int rating;
+    @NotNull
+    @Min(1)
+    @Max(5)
+    Integer rating;
+
+    @NotBlank
+    @Size(max = 1000)
     String comment;
 }

@@ -1,21 +1,24 @@
 package com.corely.corely_backend.dto.response.auth;
 
-import com.corely.corely_backend.entity.Role;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDate;
 import java.util.Set;
+import java.util.UUID;
 
 @Builder
 @Data
-@FieldDefaults(level = lombok.AccessLevel.PRIVATE)
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserResponse {
-    String id;
+    UUID id;
     String email;
     String fullName;
     String phone;
-    String dateOfBirth;
-    Set<Role> roles;
+    LocalDate dateOfBirth;
+    Set<String> roles;
     Boolean isActive;
+    String avatarUrl;
 }

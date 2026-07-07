@@ -2,22 +2,29 @@ package com.corely.corely_backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
+import java.util.UUID;
 
 @Entity
 @Table(name = "brands")
 @Getter
 @Setter
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
-public class Brand {
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class Brand extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    UUID id;
 
-    @Column(unique = true)
-    private String name;
+    @Column(nullable = false, unique = true)
+    String name;
 
-    private String slug;
+    @Column(nullable = false, unique = true)
+    String slug;
+
+    @Builder.Default
+    Boolean isActive = true;
 }

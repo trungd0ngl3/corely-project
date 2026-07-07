@@ -1,5 +1,6 @@
-package com.corely.corely_backend.dto.request;
+package com.corely.corely_backend.dto.request.user;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -9,9 +10,13 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AddressRequest {
+    @NotBlank
     String streetAddress;
-    String city;
-    String district;
+    @NotBlank
     String ward;
+    @NotBlank
+    String district;
+    @NotBlank
+    String city;
     Boolean isDefault;
 }

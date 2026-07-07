@@ -1,8 +1,9 @@
 package com.corely.corely_backend.service;
 
-import com.corely.corely_backend.dto.request.ReviewRequest;
+import com.corely.corely_backend.dto.request.store.ReviewRequest;
 import com.corely.corely_backend.dto.response.ReviewResponse;
 import com.corely.corely_backend.entity.Review;
+import com.corely.corely_backend.entity.User;
 import com.corely.corely_backend.exception.AppException;
 import com.corely.corely_backend.exception.ErrorCode;
 import com.corely.corely_backend.mapper.ReviewMapper;
@@ -11,12 +12,13 @@ import com.corely.corely_backend.repository.ReviewRepository;
 import com.corely.corely_backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,19 +29,21 @@ public class ReviewService {
     UserRepository userRepository;
     ReviewMapper reviewMapper;
 
-    public List<ReviewResponse> getProductReviews(String productId) {
-        return reviewRepository.findByProductId(productId).stream()
-                .map(reviewMapper::toReviewResponse)
-                .collect(Collectors.toList());
+    @Transactional(readOnly = true)
+    public Page<ReviewResponse> getProductReviews(UUID productId, Pageable pageable) {
+        return reviewRepository.findByProductId(productId, pageable)
+                .map(reviewMapper::toReviewResponse);
     }
 
-    public ReviewResponse createReview(String productId, ReviewRequest request) {
-        var product = productRepository.findById(UUID.fromString(productId))
+    @Transactional
+    public ReviewResponse createReview(UUID productId, ReviewRequest request) {
+        var product = productRepository.findById(productId)
                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
         
-        var username = SecurityContextHolder.getContext().getAuthentication().getName();
-        var user = userRepository.findByEmail(username)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        var user = getCurrentUser();
+
+        if (reviewRepository.existsByUserIdAndProductId(user.getId(), productId))
+            throw new AppException(ErrorCode.REVIEW_ALREADY_EXIST);
 
         Review review = reviewMapper.toReview(request);
         review.setProduct(product);
@@ -48,17 +52,36 @@ public class ReviewService {
         return reviewMapper.toReviewResponse(reviewRepository.save(review));
     }
 
-    public ReviewResponse updateReview(String id, ReviewRequest request) {
+    @Transactional
+    public ReviewResponse updateReview(UUID id, ReviewRequest request) {
         Review review = reviewRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.REVIEW_NOT_FOUND));
+        
+        if (!review.getUser().getId().equals(getCurrentUser().getId()))
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+
         review.setRating(request.getRating());
         review.setComment(request.getComment());
         return reviewMapper.toReviewResponse(reviewRepository.save(review));
     }
 
-    public void deleteReview(String id) {
-        if (!reviewRepository.existsById(id))
-            throw new AppException(ErrorCode.REVIEW_NOT_FOUND);
-        reviewRepository.deleteById(id);
+    @Transactional
+    public void deleteReview(UUID id) {
+        Review review = reviewRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.REVIEW_NOT_FOUND));
+
+        var user = getCurrentUser();
+        boolean isAdmin = user.getRoles().stream().anyMatch(r -> r.getName().equals("ADMIN"));
+
+        if (!review.getUser().getId().equals(user.getId()) && !isAdmin)
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+
+        reviewRepository.delete(review);
+    }
+
+    private User getCurrentUser() {
+        var username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByEmail(username)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     }
 }

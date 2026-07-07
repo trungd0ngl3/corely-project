@@ -45,6 +45,6 @@ public class User extends BaseEntity {
     @Builder.Default
     Boolean isActive = true;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     List<Address> addresses;
 }
