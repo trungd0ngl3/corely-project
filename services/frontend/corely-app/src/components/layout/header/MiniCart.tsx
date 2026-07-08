@@ -13,13 +13,24 @@ import { useState, useEffect } from "react";
 
 export function MiniCart() {
     const { items, removeItem, totalItems, totalPrice, fetchCart, serverCart } = useCart();
+    const [isMounted, setIsMounted] = useState(false);
     const count = totalItems();
 
     useEffect(() => {
+        setIsMounted(true);
         if (!serverCart) fetchCart();
     }, [fetchCart, serverCart]);
+
     const { animate } = useCartAnimation(count);
     const [open, setOpen] = useState(false);
+
+    if (!isMounted) {
+        return (
+            <Button variant="ghost" size="icon" className="relative">
+                <ShoppingCart className="h-5 w-5" />
+            </Button>
+        );
+    }
 
     return (
         <Sheet open={open} onOpenChange={setOpen}>
@@ -38,7 +49,7 @@ export function MiniCart() {
                     )}
                 </Button>
             </SheetTrigger>
-            <SheetContent className="w-full sm:max-w-md flex flex-col">
+            <SheetContent className="w-full sm:max-w-md flex flex-col bg-white/70 backdrop-blur-sm">
                 <SheetHeader>
                     <SheetTitle>Shopping Cart ({count})</SheetTitle>
                 </SheetHeader>

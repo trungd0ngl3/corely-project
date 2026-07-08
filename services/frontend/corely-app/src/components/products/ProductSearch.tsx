@@ -8,22 +8,29 @@ import { cn } from "@/lib/utils";
 export function ProductSearch() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const [keyword, setKeyword] = useState(searchParams.get("keyword") || "");
+    const [keyword, setKeyword] = useState(searchParams.get("keyword") ?? "");
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            const params = new URLSearchParams(searchParams.toString());
-            if (keyword) {
-                params.set("keyword", keyword);
-            } else {
-                params.delete("keyword");
-            }
-            params.set("page", "1"); // Reset to page 1 on search
-            router.push(`/products?${params.toString()}`);
-        }, 500);
+    const debouncedSearch = (value: string) => {
+        const params = new URLSearchParams(searchParams.toString());
 
+        if (value.trim()) {
+            params.set("keyword", value.trim());
+        } else {
+            params.delete("keyword");
+        }
+
+        params.set("page", "1");
+
+        router.replace(`/products?${params.toString()}`);
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setKeyword(value);
+
+        const timer = setTimeout(() => debouncedSearch(value), 500);
         return () => clearTimeout(timer);
-    }, [keyword, router, searchParams]);
+    };
 
     return (
         <div className="relative w-full max-w-2xl">
@@ -31,7 +38,7 @@ export function ProductSearch() {
             <input
                 type="text"
                 value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
+                onChange={handleChange}
                 placeholder="Search products (name, brand, SKU, category)..."
                 className="h-12 w-full rounded-full border border-outline-variant bg-surface-container-lowest pl-12 pr-6 text-sm outline-none focus:border-primary-container focus:ring-4 focus:ring-primary-container/5 transition-all"
             />

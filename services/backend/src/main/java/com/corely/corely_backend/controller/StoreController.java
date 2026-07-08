@@ -18,7 +18,6 @@ public class StoreController {
 
     @GetMapping
     public ApiResponse<StoreResponse> getStore() {
-
         return ApiResponse.<StoreResponse>builder()
                 .result(storeService.getStore())
                 .build();

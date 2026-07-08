@@ -3,14 +3,14 @@
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/hooks/use-auth";
-import { AuthService } from "@/services/auth.service";
+import { UserService } from "@/services/user.service";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
 export default function OAuthRedirectPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { login } = useAuthStore();
+    const { login, updateUser } = useAuthStore();
 
     useEffect(() => {
         const token = searchParams.get("token");
@@ -23,8 +23,14 @@ export default function OAuthRedirectPage() {
 
         const authenticate = async () => {
             try {
-                const me = await AuthService.getMe(token);
-                login(me.data, token);
+                const refreshToken = searchParams.get("refreshToken") || "";
+
+                login(null, token, refreshToken);
+
+                const response = await UserService.getMyInfo();
+
+                updateUser(response.result);
+
                 toast.success("Welcome back!");
                 router.replace("/");
             } catch (error) {

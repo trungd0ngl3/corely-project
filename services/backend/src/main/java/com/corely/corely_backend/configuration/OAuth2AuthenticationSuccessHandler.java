@@ -34,7 +34,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         AuthenticateResponse tokens = authenticationService.generateTokenPair(user);
 
-        String targetUrl = frontendUrl + "/oauth2/callback"
+        String targetUrl = frontendUrl + "/auth/oauth2/redirect"
                 + "?token=" + tokens.getToken()
                 + "&refreshToken=" + tokens.getRefreshToken();
 

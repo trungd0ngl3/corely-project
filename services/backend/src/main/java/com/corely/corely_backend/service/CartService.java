@@ -63,13 +63,15 @@ public class CartService {
         }
 
         int stock = getStock(product, variant);
-        if (stock <= 0) throw new AppException(ErrorCode.OUT_OF_STOCK);
+        if (stock <= 0)
+            throw new AppException(ErrorCode.OUT_OF_STOCK);
 
         HashOperations<String, String, Integer> hashOps = redisTemplate.opsForHash();
         Integer current = hashOps.get(cartKey, itemKey);
         int newQty = (current != null ? current : 0) + request.getQuantity();
 
-        if (newQty > stock) throw new AppException(ErrorCode.OUT_OF_STOCK);
+        if (newQty > stock)
+            throw new AppException(ErrorCode.OUT_OF_STOCK);
 
         hashOps.put(cartKey, itemKey, newQty);
         redisTemplate.expire(cartKey, java.time.Duration.ofDays(30));
@@ -81,7 +83,8 @@ public class CartService {
         String itemKey = generateItemKey(request.getProductId(), request.getVariantId());
 
         HashOperations<String, String, Integer> hashOps = redisTemplate.opsForHash();
-        if (!hashOps.hasKey(cartKey, itemKey)) throw new AppException(ErrorCode.CART_ITEM_NOT_FOUND);
+        if (!hashOps.hasKey(cartKey, itemKey))
+            throw new AppException(ErrorCode.CART_ITEM_NOT_FOUND);
 
         if (request.getQuantity() <= 0) {
             hashOps.delete(cartKey, itemKey);
@@ -103,7 +106,8 @@ public class CartService {
         }
 
         int stock = getStock(product, variant);
-        if (request.getQuantity() > stock) throw new AppException(ErrorCode.OUT_OF_STOCK);
+        if (request.getQuantity() > stock)
+            throw new AppException(ErrorCode.OUT_OF_STOCK);
 
         hashOps.put(cartKey, itemKey, request.getQuantity());
     }
@@ -131,9 +135,10 @@ public class CartService {
         Set<UUID> productIds = new HashSet<>();
         Set<UUID> variantIds = new HashSet<>();
         for (String key : cartItems.keySet()) {
-            String[] ids = key.split("_");
+            String[] ids = key.split(":");
             productIds.add(UUID.fromString(ids[0]));
-            if (!ids[1].equals("null")) variantIds.add(UUID.fromString(ids[1]));
+            if (!ids[1].equals("0"))
+                variantIds.add(UUID.fromString(ids[1]));
         }
 
         Map<UUID, Product> productMap = productRepository.findAllById(productIds).stream()
@@ -146,9 +151,9 @@ public class CartService {
         int totalItems = 0;
 
         for (Map.Entry<String, Integer> entry : cartItems.entrySet()) {
-            String[] ids = entry.getKey().split("_");
+            String[] ids = entry.getKey().split(":");
             UUID productId = UUID.fromString(ids[0]);
-            UUID variantId = !ids[1].equals("null") ? UUID.fromString(ids[1]) : null;
+            UUID variantId = !ids[1].equals("0") ? UUID.fromString(ids[1]) : null;
             Integer quantity = entry.getValue();
 
             Product product = productMap.get(productId);

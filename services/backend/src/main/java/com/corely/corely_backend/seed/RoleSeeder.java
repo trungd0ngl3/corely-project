@@ -20,10 +20,34 @@ public class RoleSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (roleRepository.count() == 0) {
-            var allPermissions = new HashSet<>(permissionRepository.findAll());
-            roleRepository.save(Role.builder().name("ADMIN").description("Admin role").permissions(allPermissions).build());
-            roleRepository.save(Role.builder().name("USER").description("User role").permissions(new HashSet<>()).build());
+
+        var allPermissions = new HashSet<>(permissionRepository.findAll());
+
+        if (!roleRepository.existsById("ADMIN")) {
+            roleRepository.save(
+                    Role.builder()
+                            .name("ADMIN")
+                            .description("Admin role")
+                            .permissions(allPermissions)
+                            .build());
+        }
+
+        if (!roleRepository.existsById("USER")) {
+            roleRepository.save(
+                    Role.builder()
+                            .name("USER")
+                            .description("User role")
+                            .permissions(new HashSet<>())
+                            .build());
+        }
+
+        if (!roleRepository.existsById("STAFF")) {
+            roleRepository.save(
+                    Role.builder()
+                            .name("STAFF")
+                            .description("Staff role")
+                            .permissions(allPermissions)
+                            .build());
         }
     }
 }

@@ -24,12 +24,24 @@ public class AdminSeeder implements CommandLineRunner {
         if (!userRepository.existsByEmail("admin@corely.local")) {
             var adminRole = roleRepository.findById("ADMIN").orElseThrow();
             userRepository.save(User.builder()
-                .email("admin@corely.local")
-                .password(passwordEncoder.encode("admin123"))
-                .fullName("Admin")
-                .isActive(true)
-                .roles(Set.of(adminRole))
-                .build());
+                    .email("admin@corely.local")
+                    .password(passwordEncoder.encode("admin123"))
+                    .fullName("Admin")
+                    .isActive(true)
+                    .roles(Set.of(adminRole))
+                    .build());
+        }
+        if (!userRepository.existsByEmail("staff@corely.local")) {
+            var staffRole = roleRepository.findById("STAFF").orElseThrow();
+
+            userRepository.save(
+                    User.builder()
+                            .email("staff@corely.local")
+                            .password(passwordEncoder.encode("staff123"))
+                            .fullName("System Staff")
+                            .isActive(true)
+                            .roles(Set.of(staffRole))
+                            .build());
         }
     }
 }

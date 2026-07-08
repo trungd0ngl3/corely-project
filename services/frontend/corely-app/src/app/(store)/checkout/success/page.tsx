@@ -1,7 +1,13 @@
+"use client";
+
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { CheckCircle2, Package, ArrowRight, ShoppingBag } from "lucide-react";
 
 export default function OrderSuccessPage() {
+    const searchParams = useSearchParams();
+    const orderCode = searchParams.get("orderCode");
+
     return (
         <div className="bg-surface min-h-[80vh] flex items-center justify-center py-12">
             <div className="container-max max-w-2xl text-center">
@@ -13,7 +19,7 @@ export default function OrderSuccessPage() {
 
                 <h1 className="headline-lg mb-4 text-on-surface">Order Placed Successfully!</h1>
                 <p className="body-lg mb-8 text-on-surface-variant">
-                    Thank you for your purchase. Your order <span className="font-bold text-on-surface">#CR-82931</span> has been received and is being processed.
+                    Thank you for your purchase. Your order <span className="font-bold text-on-surface">#{orderCode}</span> has been received and is being processed.
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">

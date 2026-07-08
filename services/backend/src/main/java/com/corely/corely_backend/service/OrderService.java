@@ -15,11 +15,11 @@ import com.corely.corely_backend.repository.ProductRepository;
 import com.corely.corely_backend.repository.ProductVariantRepository;
 import com.corely.corely_backend.repository.StoreRepository;
 import com.corely.corely_backend.repository.UserRepository;
+import com.corely.corely_backend.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -41,12 +41,11 @@ public class OrderService {
     ProductVariantRepository productVariantRepository;
     CartService cartService;
     OrderMapper orderMapper;
+    SecurityUtils securityUtils;
 
     @Transactional
     public OrderResponse createOrder(OrderCreationRequest request) {
-        String userIdStr = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findById(UUID.fromString(userIdStr))
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        User user = securityUtils.getCurrentUser();
 
         Store store = storeRepository.findTopBy()
                 .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
@@ -124,15 +123,14 @@ public class OrderService {
 
         // Clear cart after commit
         TransactionSynchronizationManager.registerSynchronization(
-            new org.springframework.transaction.support.TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    for (CartItemResponse item : storeItems) {
-                        cartService.removeFromCart(item.getProductId(), item.getVariantId());
+                new org.springframework.transaction.support.TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        for (CartItemResponse item : storeItems) {
+                            cartService.removeFromCart(item.getProductId(), item.getVariantId());
+                        }
                     }
-                }
-            }
-        );
+                });
 
         order = orderRepository.save(order);
 
@@ -140,8 +138,7 @@ public class OrderService {
     }
 
     public Page<OrderResponse> getMyOrder(Pageable pageable) {
-        String userIdStr = SecurityContextHolder.getContext().getAuthentication().getName();
-        return orderRepository.findByUserIdOrderByCreatedAtDesc(UUID.fromString(userIdStr), pageable)
+        return orderRepository.findByUserIdOrderByCreatedAtDesc(securityUtils.getCurrentUserId(), pageable)
                 .map(orderMapper::toOrderResponse);
     }
 
@@ -154,14 +151,15 @@ public class OrderService {
     }
 
     public OrderResponse getOrderById(UUID orderId) {
-        String userIdStr = SecurityContextHolder.getContext().getAuthentication().getName();
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
 
-        boolean isOwner = order.getUser().getId().toString().equals(userIdStr);
-        boolean isAdmin = userRepository.findById(UUID.fromString(userIdStr))
-                .map(u -> u.getRoles().stream().anyMatch(r -> r.getName().equals("ADMIN")))
-                .orElse(false);
+        User currentUser = securityUtils.getCurrentUser();
+
+        boolean isOwner = order.getUser().getId().equals(currentUser.getId());
+        boolean isAdmin = currentUser.getRoles()
+                .stream()
+                .anyMatch(r -> r.getName().equals("ADMIN"));
 
         if (!isOwner && !isAdmin) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
@@ -171,13 +169,14 @@ public class OrderService {
     }
 
     public OrderResponse updateOrderStatus(UUID orderId, OrderStatus status) {
-        String userIdStr = SecurityContextHolder.getContext().getAuthentication().getName();
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
 
-        boolean isAdmin = userRepository.findById(UUID.fromString(userIdStr))
-                .map(u -> u.getRoles().stream().anyMatch(r -> r.getName().equals("ADMIN")))
-                .orElse(false);
+        User currentUser = securityUtils.getCurrentUser();
+
+        boolean isAdmin = currentUser.getRoles()
+                .stream()
+                .anyMatch(r -> r.getName().equals("ADMIN"));
 
         if (!isAdmin) {
             throw new AppException(ErrorCode.UNAUTHORIZED);

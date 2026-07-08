@@ -1,70 +1,35 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+import api from "@/lib/axios";
+import { ApiResponse } from "@/types/api";
+import { ChangePasswordRequest, UpdateProfileRequest, UserResponse } from "@/types/user";
 
-export async function getMyInfo(token: string) {
-    const res = await fetch(`${API_URL}/api/v1/users/myinfo`, {
-        headers: { "Authorization": `Bearer ${token}` }
-    });
-    if (!res.ok) throw new Error("Failed to fetch user info");
-    return res.json();
-}
+export const UserService = {
+    async getMyInfo() {
+        const res = await api.get<ApiResponse<UserResponse>>(
+            "/api/v1/users/me"
+        );
 
-export async function updateUser(userId: string, data: any, token: string) {
-    const res = await fetch(`${API_URL}/api/v1/users/${userId}`, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(data)
-    });
-    if (!res.ok) throw new Error("Failed to update user");
-    return res.json();
-}
-
-// --- Address ---
-export interface Address {
-    id: number;
-    recipientName: string;
-    phone: string;
-    street: string;
-    ward: string;
-    district: string;
-    city: string;
-    isDefault: boolean;
-}
-
-export const addressApi = {
-    async getAddresses(token: string) {
-        const res = await fetch(`${API_URL}/api/v1/address`, {
-            headers: { "Authorization": `Bearer ${token}` }
-        });
-        if (!res.ok) throw new Error("Failed to fetch addresses");
-        return res.json();
+        return res.data;
     },
-    async createAddress(data: Omit<Address, "id" | "isDefault">, token: string) {
-        const res = await fetch(`${API_URL}/api/v1/address`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-            body: JSON.stringify(data)
-        });
-        if (!res.ok) throw new Error("Failed to create address");
-        return res.json();
+
+    async updateMyInfo(data: UpdateProfileRequest) {
+        const res = await api.put<ApiResponse<UserResponse>>(
+            "/api/v1/users/me",
+            data
+        );
+
+        return res.data;
     },
-    async updateAddress(id: number, data: Omit<Address, "id" | "isDefault">, token: string) {
-        const res = await fetch(`${API_URL}/api/v1/address/${id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-            body: JSON.stringify(data)
-        });
-        if (!res.ok) throw new Error("Failed to update address");
-        return res.json();
+
+    async deleteMyInfo() {
+        await api.delete<ApiResponse<void>>(
+            "/api/v1/users/me"
+        );
     },
-    async deleteAddress(id: number, token: string) {
-        const res = await fetch(`${API_URL}/api/v1/address/${id}`, {
-            method: "DELETE",
-            headers: { "Authorization": `Bearer ${token}` }
-        });
-        if (!res.ok) throw new Error("Failed to delete address");
-        return res.json();
-    }
+
+    async changePassword(data: ChangePasswordRequest) {
+        await api.put<ApiResponse<void>>(
+            "/api/v1/users/password",
+            data
+        );
+    },
 };

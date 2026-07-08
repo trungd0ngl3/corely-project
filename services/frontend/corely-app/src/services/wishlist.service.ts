@@ -1,19 +1,14 @@
-import { WishlistItem } from "@/types/wishlist";
+import api from "@/lib/axios";
+import { WishlistResponse } from "@/types/wishlist";
 
-export const wishlistService = {
-    getAll: async (): Promise<WishlistItem[]> => {
-        // Mock data.
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve([]);
-            }, 500);
-        });
+export const WishlistService = {
+    getMyWishlist: async () => {
+        return await api.get<WishlistResponse>("/api/v1/wishlist");
     },
-    getCount: async (): Promise<number> => {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve(0);
-            }, 500);
-        });
+    addToWishlist: async (productId: string) => {
+        return await api.post(`/api/v1/wishlist/${productId}`);
+    },
+    removeFromWishlist: async (productId: string) => {
+        return await api.delete(`/api/v1/wishlist/${productId}`);
     }
 };

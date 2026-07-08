@@ -1,6 +1,9 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-// import { getCart, addToCart as apiAddToCart, updateCartItem as apiUpdateCartItem, removeFromCart as apiRemoveFromCart, clearCartApi, applyVoucher, removeVoucher, CartResponse } from "@/lib/api";
+import axios from "axios";
+import { toast } from "sonner";
+import { CartService } from "@/services/cart.service";
+import { CartResponse } from "@/types/cart";
 
 export interface Product {
     id: string;
@@ -60,10 +63,9 @@ export const useCart = create<CartStore>()(
             fetchCart: async () => {
                 set({ isLoading: true, error: null });
                 try {
-                    const cart = await getCart();
+                    const { data: cart } = await CartService.getCart();
 
-                    // Sync server cart to local items (simplified logic, assumes server is source of truth)
-                    const localItems: CartItem[] = cart.items.map(item => ({
+                    const localItems: CartItem[] = cart.items.map((item: { productId: string; productName: string; price: number; imageUrl?: string; quantity: number; availableStock?: number }) => ({
                         id: item.productId,
                         productId: item.productId,
                         name: item.productName,
@@ -80,8 +82,10 @@ export const useCart = create<CartStore>()(
                     }));
 
                     set({ serverCart: cart, items: localItems, isLoading: false });
-                } catch (error: any) {
-                    set({ error: error.message, isLoading: false });
+                } catch (error: unknown) {
+                    const message = error instanceof Error ? error.message : "Unknown error";
+                    if (axios.isAxiosError(error)) toast.error(error.response?.data?.message || message);
+                    set({ error: message, isLoading: false });
                 }
             },
 
@@ -119,11 +123,13 @@ export const useCart = create<CartStore>()(
                     }
 
                     // API call
-                    await apiAddToCart(product.id, quantity);
+                    await CartService.addToCart({ productId: product.id, quantity });
                     await get().fetchCart();
-                } catch (error: any) {
+                } catch (error: unknown) {
+                    const message = error instanceof Error ? error.message : "Unknown error";
+                    if (axios.isAxiosError(error)) toast.error(error.response?.data?.message || message);
                     // Rollback
-                    set({ items: prevItems, error: error.message, isLoading: false });
+                    set({ items: prevItems, error: message, isLoading: false });
                 }
             },
 
@@ -135,11 +141,13 @@ export const useCart = create<CartStore>()(
                     set({ items: prevItems.filter((i) => i.id !== id) });
 
                     // API call
-                    await apiRemoveFromCart(id);
+                    await CartService.removeFromCart(id);
                     await get().fetchCart();
-                } catch (error: any) {
+                } catch (error: unknown) {
+                    const message = error instanceof Error ? error.message : "Unknown error";
+                    if (axios.isAxiosError(error)) toast.error(error.response?.data?.message || message);
                     // Rollback
-                    set({ items: prevItems, error: error.message, isLoading: false });
+                    set({ items: prevItems, error: message, isLoading: false });
                 }
             },
 
@@ -155,11 +163,13 @@ export const useCart = create<CartStore>()(
                     });
 
                     // API call
-                    await apiUpdateCartItem(id, quantity);
+                    await CartService.updateCartItem({ productId: id, quantity });
                     await get().fetchCart();
-                } catch (error: any) {
+                } catch (error: unknown) {
+                    const message = error instanceof Error ? error.message : "Unknown error";
+                    if (axios.isAxiosError(error)) toast.error(error.response?.data?.message || message);
                     // Rollback
-                    set({ items: prevItems, error: error.message, isLoading: false });
+                    set({ items: prevItems, error: message, isLoading: false });
                 }
             },
 
@@ -167,20 +177,24 @@ export const useCart = create<CartStore>()(
                 set({ isLoading: true, error: null });
                 try {
                     set({ items: [] });
-                    await clearCartApi();
+                    await CartService.clearCart();
                     await get().fetchCart();
-                } catch (error: any) {
-                    set({ error: error.message, isLoading: false });
+                } catch (error: unknown) {
+                    const message = error instanceof Error ? error.message : "Unknown error";
+                    if (axios.isAxiosError(error)) toast.error(error.response?.data?.message || message);
+                    set({ error: message, isLoading: false });
                 }
             },
 
             applyCoupon: async (code: string) => {
                 set({ isLoading: true, error: null });
                 try {
-                    await applyVoucher(code);
+                    await CartService.applyVoucher({ voucherCode: code });
                     await get().fetchCart();
-                } catch (error: any) {
-                    set({ error: error.message, isLoading: false });
+                } catch (error: unknown) {
+                    const message = error instanceof Error ? error.message : "Unknown error";
+                    if (axios.isAxiosError(error)) toast.error(error.response?.data?.message || message);
+                    set({ error: message, isLoading: false });
                     throw error;
                 }
             },
@@ -188,10 +202,12 @@ export const useCart = create<CartStore>()(
             removeCoupon: async () => {
                 set({ isLoading: true, error: null });
                 try {
-                    await removeVoucher();
+                    await CartService.removeVoucher();
                     await get().fetchCart();
-                } catch (error: any) {
-                    set({ error: error.message, isLoading: false });
+                } catch (error: unknown) {
+                    const message = error instanceof Error ? error.message : "Unknown error";
+                    if (axios.isAxiosError(error)) toast.error(error.response?.data?.message || message);
+                    set({ error: message, isLoading: false });
                 }
             },
 

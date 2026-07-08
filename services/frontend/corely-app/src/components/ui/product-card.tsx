@@ -4,9 +4,12 @@ import Image from "next/image";
 import { Heart, ShoppingCart, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { WishlistService } from "@/services/wishlist.service";
+import { useState } from "react";
 
 interface ProductCardProps {
     id: string;
+    slug: string;
     name: string;
     price: number;
     originalPrice?: number;
@@ -20,6 +23,7 @@ interface ProductCardProps {
 
 export function ProductCard({
     id,
+    slug,
     name,
     price,
     originalPrice,
@@ -30,11 +34,27 @@ export function ProductCard({
     soldPercentage,
     className
 }: ProductCardProps) {
+    const [wishlisted, setWishlisted] = useState(false);
+
     const formatPrice = (val: number) => {
         return new Intl.NumberFormat("vi-VN", {
             style: "currency",
             currency: "VND",
         }).format(val);
+    };
+
+    const handleWishlist = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        try {
+            if (wishlisted) {
+                await WishlistService.removeFromWishlist(id);
+            } else {
+                await WishlistService.addToWishlist(id);
+            }
+            setWishlisted(!wishlisted);
+        } catch (error) {
+            console.error("Wishlist error:", error);
+        }
     };
 
     return (
@@ -43,15 +63,18 @@ export function ProductCard({
             className
         )}>
             {/* Image Container */}
-            <Link href={`/products/${id}`} className="relative aspect-square overflow-hidden rounded-xl bg-surface-container-low block">
+            <Link href={`/products/${slug}`} className="relative aspect-square overflow-hidden rounded-xl bg-surface-container-low block">
                 <Image
                     src={image || "/placeholder.svg"}
                     alt={name}
                     fill
                     className="object-contain p-4 transition-transform group-hover:scale-110"
                 />
-                <button className="absolute right-2 top-2 rounded-full bg-white/80 p-2 text-on-surface-variant backdrop-blur-sm transition-colors hover:text-error">
-                    <Heart className="h-5 w-5" />
+                <button
+                    onClick={handleWishlist}
+                    className={`absolute right-2 top-2 rounded-full bg-white/80 p-2 backdrop-blur-sm transition-colors ${wishlisted ? "text-error" : "text-on-surface-variant hover:text-error"}`}
+                >
+                    <Heart className={`h-5 w-5 ${wishlisted ? "fill-current" : ""}`} />
                 </button>
                 {isFlashSale && (
                     <div className="absolute left-0 top-0 rounded-br-xl bg-error px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
@@ -65,7 +88,7 @@ export function ProductCard({
                 <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">
                     {brand}
                 </span>
-                <Link href={`/products/${id}`}>
+                <Link href={`/products/${slug}`}>
                     <h3 className="mt-1 line-clamp-2 text-sm font-semibold text-on-surface group-hover:text-primary">
                         {name}
                     </h3>

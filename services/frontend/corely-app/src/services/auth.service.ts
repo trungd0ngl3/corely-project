@@ -1,20 +1,29 @@
 import api from "@/lib/axios";
-import { LoginResult, User } from "@/types/auth";
+import { ApiResponse } from "@/types/api";
+import { AuthenticateRequest, UserCreationRequest, AuthenticateResponse, RefreshTokenRequest, LogoutRequest } from "@/types/auth";
 
 export const AuthService = {
-    login: async (email: string, password: string, rememberMe?: boolean) => {
-        return api.post<LoginResult>("/api/auth/login", { email, password, rememberMe });
+    async login(data: AuthenticateRequest) {
+        const res = await api.post<AuthenticateResponse>(
+            "/api/v1/auth/login",
+            data
+        );
+
+        return res.data;
     },
-    register: async (data: any) => {
-        return api.post("/api/auth/register", data);
+
+    async register(data: UserCreationRequest) {
+        const res = await api.post<ApiResponse<void>>(
+            "/api/v1/auth/register",
+            data
+        );
+        return res.data;
     },
-    getMe: async (token?: string) => {
-        return api.get<User>("/api/v1/users/myinfo", {
-            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        });
+
+    async logout(data: LogoutRequest) {
+        await api.post<ApiResponse<void>>(
+            "/api/v1/auth/tokens/logout",
+            data
+        );
     },
-    refreshToken: async (refreshToken: string) => {
-        return api.post<LoginResult>("/api/auth/refresh", { refreshToken });
-    },
-    logout: () => api.post("/api/auth/logout"),
 };

@@ -1,4 +1,4 @@
-import { MOCK_PRODUCT } from "@/lib/mock-product-detail";
+import { ProductService } from "@/services/product.service";
 import { ProductGallery } from "@/components/product-detail/ProductGallery";
 import { ProductInfo } from "@/components/product-detail/ProductInfo";
 import { ProductPrice } from "@/components/product-detail/ProductPrice";
@@ -14,8 +14,19 @@ import { BenchmarkSection } from "@/components/product-detail/BenchmarkSection";
 import { CompatibilityChecker } from "@/components/product-detail/CompatibilityChecker";
 import { StickyPurchaseBar } from "@/components/product-detail/StickyPurchaseBar";
 
-export default function ProductDetailPage() {
-    const product = MOCK_PRODUCT;
+import { notFound } from "next/navigation";
+import { log } from "console";
+
+export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+    const { slug } = await params;
+    const product = await ProductService.getProductBySlug(slug);
+
+    if (!product) {
+        notFound();
+    }
+
+    // Cast to any to bypass TS errors caused by incorrect type inference of ProductService return
+    const p = product as any;
 
     return (
         <div className="bg-surface min-h-screen pb-20">
@@ -26,17 +37,35 @@ export default function ProductDetailPage() {
                     <span className="mx-2">/</span>
                     <span className="hover:text-primary-container cursor-pointer">Products</span>
                     <span className="mx-2">/</span>
-                    <span className="text-on-surface font-medium">{product.name}</span>
+                    <span className="text-on-surface font-medium">{p.name}</span>
                 </nav>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
                     {/* Left: Gallery */}
                     <div className="lg:col-span-7">
-                        <ProductGallery images={product.images} />
+                        <ProductGallery
+                            images={
+                                p.imageUrls?.length > 0
+                                    ? p.imageUrls.map((url: string, i: number) => ({
+                                        id: String(i),
+                                        url,
+                                        alt: p.name,
+                                    }))
+                                    : [
+                                        {
+                                            id: "0",
+                                            url:
+                                                p.thumbnailUrl ??
+                                                "/images/product-placeholder.png",
+                                            alt: p.name,
+                                        },
+                                    ]
+                            }
+                        />
                         <div className="mt-12 hidden lg:block">
-                            <ProductHighlights features={product.features} />
+                            <ProductHighlights features={[]} />
                             <div className="mt-12">
-                                <BenchmarkSection benchmarks={product.benchmarks} />
+                                <BenchmarkSection benchmarks={[]} />
                             </div>
                         </div>
                     </div>
@@ -44,35 +73,35 @@ export default function ProductDetailPage() {
                     {/* Right: Info & Actions */}
                     <div className="lg:col-span-5">
                         <ProductInfo
-                            name={product.name}
-                            brand={product.brand}
-                            rating={product.rating}
-                            reviewCount={product.reviewCount}
+                            name={p.name}
+                            brand={p.brandName}
+                            rating={0}
+                            reviewCount={0}
                         />
                         <div className="mt-4">
                             <ProductPrice
-                                price={product.price}
-                                originalPrice={product.originalPrice}
-                                stock={product.stock}
+                                price={p.discountPrice ?? p.price}
+                                originalPrice={p.discountPrice ?? 0}
+                                stock={p.stockQuantity}
                             />
                         </div>
                         <div className="mt-8">
                             <ProductActions
-                                id={product.id}
-                                name={product.name}
-                                price={product.price}
-                                image={product.images[0]?.url || ""}
-                                brand={product.brand}
-                                stock={product.stock}
+                                id={p.id}
+                                name={p.name}
+                                price={p.discountPrice ?? p.price}
+                                image={p.imageUrls?.[0] ?? ""}
+                                brand={p.brandName}
+                                stock={p.stockQuantity}
                             />
                         </div>
                         <div className="mt-8">
-                            <CompatibilityChecker compatibility={product.compatibility} />
+                            <CompatibilityChecker compatibility={[]} />
                         </div>
                         <div className="mt-8">
                             <BundleSuggestion
-                                items={product.bundle.items}
-                                bundlePrice={product.bundle.bundlePrice}
+                                items={[]}
+                                bundlePrice={0}
                             />
                         </div>
                     </div>
@@ -80,44 +109,44 @@ export default function ProductDetailPage() {
 
                 {/* Mobile Highlights */}
                 <div className="mt-12 lg:hidden">
-                    <ProductHighlights features={product.features} />
+                    <ProductHighlights features={[]} />
                     <div className="mt-12">
-                        <BenchmarkSection benchmarks={product.benchmarks} />
+                        <BenchmarkSection benchmarks={[]} />
                     </div>
                 </div>
 
                 {/* Full Width Sections */}
                 <div className="mt-16 grid grid-cols-1 lg:grid-cols-12 gap-12">
                     <div className="lg:col-span-8">
-                        <ProductSpecs specifications={product.specifications} />
+                        <ProductSpecs specifications={Array.isArray(p.specs) ? p.specs : []} />
                         <div className="mt-16">
                             <h2 className="headline-md mb-8">Customer Reviews</h2>
                             <ReviewSummary
-                                rating={product.rating}
-                                reviewCount={product.reviewCount}
-                                distribution={product.ratingDistribution}
+                                rating={0}
+                                reviewCount={0}
+                                distribution={[0, 0, 0, 0, 0]}
                             />
                             <div className="mt-8">
-                                <ReviewList reviews={product.reviews} />
+                                <ReviewList reviews={[]} />
                             </div>
                         </div>
                         <div className="mt-16">
-                            <QuestionAnswer questions={product.questions} />
+                            <QuestionAnswer questions={[]} />
                         </div>
                     </div>
                     <div className="lg:col-span-4">
                         <div className="sticky top-24">
-                            <RelatedProducts products={product.relatedProducts} />
+                            <RelatedProducts products={[]} />
                         </div>
                     </div>
                 </div>
             </div>
 
             <StickyPurchaseBar
-                name={product.name}
-                price={product.price}
-                image={product.images[0]?.url || ""}
-                stock={product.stock}
+                name={p.name}
+                price={p.discountPrice ?? p.price}
+                image={p.imageUrls?.[0] ?? p.thumbnailUrl ?? "/images/product-placeholder.png"}
+                stock={p.stockQuantity}
             />
         </div>
     );

@@ -11,11 +11,11 @@ import com.corely.corely_backend.repository.ProductRepository;
 import com.corely.corely_backend.repository.UserRepository;
 import com.corely.corely_backend.repository.WishlistItemRepository;
 import com.corely.corely_backend.repository.WishlistRepository;
+import com.corely.corely_backend.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +32,7 @@ public class WishlistService {
     ProductRepository productRepository;
     UserRepository userRepository;
     WishlistMapper wishlistMapper;
+    SecurityUtils securityUtils;
 
     @Transactional(readOnly = true)
     public WishlistResponse getMyWishlist() {
@@ -46,7 +47,8 @@ public class WishlistService {
         var product = productRepository.findById(productId)
                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
 
-        if (!product.getIsActive()) throw new AppException(ErrorCode.PRODUCT_NOT_AVAILABLE);
+        if (!product.getIsActive())
+            throw new AppException(ErrorCode.PRODUCT_NOT_AVAILABLE);
 
         var wishlist = getOrCreateWishlist(user);
 
@@ -60,14 +62,12 @@ public class WishlistService {
 
     @Transactional
     public void removeFromWishlist(UUID productId) {
-        wishlistRepository.findByUserId(getCurrentUser().getId()).ifPresent(w -> 
-            wishlistItemRepository.deleteByWishlistIdAndProductId(w.getId(), productId));
+        wishlistRepository.findByUserId(getCurrentUser().getId())
+                .ifPresent(w -> wishlistItemRepository.deleteByWishlistIdAndProductId(w.getId(), productId));
     }
 
     private User getCurrentUser() {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        return securityUtils.getCurrentUser();
     }
 
     private Wishlist getOrCreateWishlist(User user) {

@@ -1,8 +1,14 @@
-export interface Category {
+export interface CategoryRequest {
+    name: string;
+    description?: string;
+}
+
+export interface CategoryResponse {
     id: string;
     name: string;
     slug: string;
-    icon?: string;
     description?: string;
-    children?: Category[];
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
 }

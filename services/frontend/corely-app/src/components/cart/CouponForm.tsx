@@ -5,26 +5,30 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/hooks/use-cart";
 import { Loader2 } from "lucide-react";
+import axios from "axios";
+import { toast } from "sonner";
 
 export function CouponForm() {
     const [code, setCode] = useState("");
-    const { applyCoupon, removeCoupon, serverCart, isLoading, error } = useCart();
+    const { applyCoupon, removeCoupon, serverCart, isLoading } = useCart();
 
     const handleApply = async () => {
         if (!code.trim()) return;
         try {
             await applyCoupon(code);
             setCode("");
-        } catch (err: any) {
-            alert(err.message || "Failed to apply coupon");
+        } catch (err: unknown) {
+            const message = axios.isAxiosError(err) ? err.response?.data?.message : (err instanceof Error ? err.message : "Failed to apply coupon");
+            toast.error(message);
         }
     };
 
     const handleRemove = async () => {
         try {
             await removeCoupon();
-        } catch (err: any) {
-            alert(err.message || "Failed to remove coupon");
+        } catch (err: unknown) {
+            const message = axios.isAxiosError(err) ? err.response?.data?.message : (err instanceof Error ? err.message : "Failed to remove coupon");
+            toast.error(message);
         }
     };
 

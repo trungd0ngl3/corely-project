@@ -25,6 +25,7 @@ public class ProductSeeder implements CommandLineRunner {
     public void run(String... args) {
         if (productRepository.count() == 0) {
             var store = storeRepository.findTopBy().orElseThrow();
+
             var cpu = categoryRepository.findBySlug("cpu").orElseThrow();
             var gpu = categoryRepository.findBySlug("graphics-card").orElseThrow();
             var motherboard = categoryRepository.findBySlug("motherboard").orElseThrow();

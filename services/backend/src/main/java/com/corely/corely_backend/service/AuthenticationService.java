@@ -68,7 +68,9 @@ public class AuthenticationService {
         User user = userRepository.findByEmailAndIsActiveTrue(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-        if (!"local".equals(user.getProvider())) {
+        // Allow admin to login via local even if provider is not local
+        if (!"local".equals(user.getProvider())
+                && user.getRoles().stream().noneMatch(role -> "ADMIN".equals(role.getName()))) {
             throw new AppException(ErrorCode.USE_SOCIAL_LOGIN);
         }
 

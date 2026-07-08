@@ -10,11 +10,11 @@ import com.corely.corely_backend.mapper.ReviewMapper;
 import com.corely.corely_backend.repository.ProductRepository;
 import com.corely.corely_backend.repository.ReviewRepository;
 import com.corely.corely_backend.repository.UserRepository;
+import com.corely.corely_backend.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +28,7 @@ public class ReviewService {
     ProductRepository productRepository;
     UserRepository userRepository;
     ReviewMapper reviewMapper;
+    SecurityUtils securityUtils;
 
     @Transactional(readOnly = true)
     public Page<ReviewResponse> getProductReviews(UUID productId, Pageable pageable) {
@@ -39,7 +40,7 @@ public class ReviewService {
     public ReviewResponse createReview(UUID productId, ReviewRequest request) {
         var product = productRepository.findById(productId)
                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
-        
+
         var user = getCurrentUser();
 
         if (reviewRepository.existsByUserIdAndProductId(user.getId(), productId))
@@ -48,7 +49,7 @@ public class ReviewService {
         Review review = reviewMapper.toReview(request);
         review.setProduct(product);
         review.setUser(user);
-        
+
         return reviewMapper.toReviewResponse(reviewRepository.save(review));
     }
 
@@ -56,7 +57,7 @@ public class ReviewService {
     public ReviewResponse updateReview(UUID id, ReviewRequest request) {
         Review review = reviewRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.REVIEW_NOT_FOUND));
-        
+
         if (!review.getUser().getId().equals(getCurrentUser().getId()))
             throw new AppException(ErrorCode.UNAUTHORIZED);
 
@@ -80,8 +81,6 @@ public class ReviewService {
     }
 
     private User getCurrentUser() {
-        var username = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findByEmail(username)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        return securityUtils.getCurrentUser();
     }
 }

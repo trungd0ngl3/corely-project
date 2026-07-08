@@ -9,9 +9,9 @@ import com.corely.corely_backend.exception.ErrorCode;
 import com.corely.corely_backend.mapper.AddressMapper;
 import com.corely.corely_backend.repository.AddressRepository;
 import com.corely.corely_backend.repository.UserRepository;
+import com.corely.corely_backend.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +26,7 @@ public class AddressService {
     AddressRepository addressRepository;
     UserRepository userRepository;
     AddressMapper addressMapper;
+    SecurityUtils securityUtils;
 
     @Transactional(readOnly = true)
     public List<AddressResponse> getMyAddresses() {
@@ -49,11 +50,11 @@ public class AddressService {
     public AddressResponse updateAddress(UUID id, AddressRequest request) {
         Address address = addressRepository.findByIdAndUserId(id, getCurrentUser().getId())
                 .orElseThrow(() -> new AppException(ErrorCode.ADDRESS_NOT_FOUND));
-        
+
         if (Boolean.TRUE.equals(request.getIsDefault()) && !Boolean.TRUE.equals(address.getIsDefault())) {
             addressRepository.resetDefault(getCurrentUser().getId());
         }
-        
+
         addressMapper.updateAddress(address, request);
         return addressMapper.toAddressResponse(addressRepository.save(address));
     }
@@ -62,10 +63,10 @@ public class AddressService {
     public void deleteAddress(UUID id) {
         Address address = addressRepository.findByIdAndUserId(id, getCurrentUser().getId())
                 .orElseThrow(() -> new AppException(ErrorCode.ADDRESS_NOT_FOUND));
-        
+
         boolean wasDefault = Boolean.TRUE.equals(address.getIsDefault());
         addressRepository.delete(address);
-        
+
         if (wasDefault) {
             List<Address> remaining = addressRepository.findByUserId(getCurrentUser().getId());
             if (!remaining.isEmpty()) {
@@ -86,8 +87,6 @@ public class AddressService {
     }
 
     private User getCurrentUser() {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        return securityUtils.getCurrentUser();
     }
 }

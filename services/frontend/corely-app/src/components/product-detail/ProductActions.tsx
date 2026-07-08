@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ShoppingCart, Zap, Heart, ArrowLeftRight, Plus, Minus } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
+import { WishlistService } from "@/services/wishlist.service";
 
 interface ProductActionsProps {
     id: string;
@@ -20,6 +21,21 @@ export function ProductActions({ id, name, price, image, brand, stock }: Product
 
     const handleAddToCart = () => {
         addItem({ id, name, price, image, brand }, quantity);
+        alert("Added to cart!");
+    };
+
+    const handleWishlist = async () => {
+        try {
+            if (wishlisted) {
+                await WishlistService.removeFromWishlist(id);
+            } else {
+                await WishlistService.addToWishlist(id);
+            }
+            setWishlisted(!wishlisted);
+        } catch (error) {
+            console.error("Wishlist error:", error);
+            alert("Failed to update wishlist");
+        }
     };
 
     return (
@@ -70,7 +86,7 @@ export function ProductActions({ id, name, price, image, brand, stock }: Product
             {/* Secondary Actions */}
             <div className="flex gap-3">
                 <button
-                    onClick={() => setWishlisted(!wishlisted)}
+                    onClick={handleWishlist}
                     className={`flex flex-1 items-center justify-center gap-2 rounded-xl border py-2.5 text-sm font-medium transition-all ${wishlisted
                         ? "border-error bg-error/5 text-error"
                         : "border-outline-variant text-on-surface-variant hover:border-primary hover:text-primary"

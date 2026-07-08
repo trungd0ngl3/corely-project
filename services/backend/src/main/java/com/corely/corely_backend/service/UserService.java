@@ -12,12 +12,12 @@ import com.corely.corely_backend.exception.ErrorCode;
 import com.corely.corely_backend.mapper.UserMapper;
 import com.corely.corely_backend.repository.RoleRepository;
 import com.corely.corely_backend.repository.UserRepository;
+import com.corely.corely_backend.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +35,7 @@ public class UserService {
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
     UserMapper userMapper;
+    SecurityUtils securityUtils;
 
     @Transactional
     public UserResponse createUser(UserCreationRequest request) {
@@ -92,6 +93,7 @@ public class UserService {
         userRepository.save(user);
         log.info("User {} changed password", user.getId());
     }
+
     public User processOAuth2User(String email, String name, String picture, String provider, String providerId) {
         return userRepository.findByEmail(email)
                 .map(existingUser -> {
@@ -101,6 +103,9 @@ public class UserService {
                     }
                     if (existingUser.getAvatarUrl() == null && picture != null) {
                         existingUser.setAvatarUrl(picture);
+                    }
+                    if (!existingUser.getIsActive()) {
+                        existingUser.setIsActive(true);
                     }
                     return userRepository.save(existingUser);
                 })
@@ -121,6 +126,7 @@ public class UserService {
                     return userRepository.save(newUser);
                 });
     }
+
     @Transactional
     public UserResponse updateUser(UUID userId, UserUpdateRequest request) {
         User user = userRepository.findById(userId)
@@ -162,9 +168,7 @@ public class UserService {
     }
 
     User getCurrentUser() {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findByEmailAndIsActiveTrue(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        return securityUtils.getCurrentUser();
     }
 
 }

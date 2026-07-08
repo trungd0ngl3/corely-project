@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Category } from "@/types/category";
-import { categoryService } from "@/services/category.service";
+import { CategoryService } from "@/services/category.service";
 
 export function useCategories() {
     const [data, setData] = useState<Category[]>([]);
@@ -12,7 +12,8 @@ export function useCategories() {
         const fetchCategories = async () => {
             try {
                 setIsLoading(true);
-                const categories = await categoryService.getAll();
+                const response = await CategoryService.getCategories();
+                const categories = response.data;
                 if (mounted) {
                     setData(categories);
                 }

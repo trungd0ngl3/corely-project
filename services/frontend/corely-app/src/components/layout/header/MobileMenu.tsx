@@ -55,7 +55,7 @@ export function MobileMenu() {
                             </h4>
                         </div>
 
-                        {categories.map((category) => (
+                        {(categories || []).map((category) => (
                             <Link
                                 key={category.id}
                                 href={`/products?category=${category.slug}`}

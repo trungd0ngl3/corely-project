@@ -23,6 +23,7 @@ import { useAuthStore } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import axios from "axios";
 import { AuthService } from "@/services/auth.service";
+import { UserService } from "@/services/user.service";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 const loginSchema = z.object({
@@ -51,17 +52,22 @@ export default function LoginPage() {
     const onSubmit = async (data: LoginFormValues) => {
         setIsLoading(true);
         try {
-            const response = await AuthService.login(data.email, data.password, data.rememberMe);
-            const { token } = response.data;
-            const me = await AuthService.getMe(token);
-            login(me.data, token);
+            const response = await AuthService.login({ email: data.email, password: data.password });
+            if (!response || !response.token) throw new Error("Login failed: Invalid response from server");
+            const { token, refreshToken } = response;
+
+            login(null, token, refreshToken);
+            const me = await UserService.getMyInfo();
+            login(me.result, token, refreshToken);
+
             toast.success("Welcome back!");
             router.replace("/");
         } catch (error) {
+            console.error("Login error:", error);
             if (axios.isAxiosError(error)) {
                 toast.error(error.response?.data?.message ?? "Something went wrong");
             } else {
-                toast.error("Unexpected error");
+                toast.error("Unexpected error: " + (error instanceof Error ? error.message : String(error)));
             }
         } finally {
             setIsLoading(false);

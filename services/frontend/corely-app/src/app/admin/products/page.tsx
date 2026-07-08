@@ -1,3 +1,8 @@
+'use client';
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { Copy, Edit, Filter, MoreHorizontal, Plus, Search, Trash2, Upload } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,64 +29,22 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Copy, Edit, Filter, MoreHorizontal, Plus, Search, Trash2 } from "lucide-react";
-import Link from "next/link";
-import Image from "next/image";
-
-const products = [
-    {
-        id: "PRD-001",
-        name: "VGA GIGABYTE GeForce RTX 5080 GAMING OC 16G",
-        category: "GPU",
-        brand: "GIGABYTE",
-        price: "35.990.000₫",
-        stock: 10,
-        status: "Active",
-        image: "/file.svg"
-    },
-    {
-        id: "PRD-002",
-        name: "CPU Intel Core i7-14700K",
-        category: "CPU",
-        brand: "Intel",
-        price: "10.490.000₫",
-        stock: 5,
-        status: "Active",
-        image: "/file.svg"
-    },
-    {
-        id: "PRD-003",
-        name: "Mainboard ASUS ROG MAXIMUS Z790 HERO",
-        category: "Motherboard",
-        brand: "ASUS",
-        price: "16.990.000₫",
-        stock: 0,
-        status: "Out of Stock",
-        image: "/file.svg"
-    },
-    {
-        id: "PRD-004",
-        name: "RAM Corsair Dominator Platinum RGB 32GB (2x16GB) DDR5 6200MHz",
-        category: "RAM",
-        brand: "Corsair",
-        price: "4.590.000₫",
-        stock: 25,
-        status: "Active",
-        image: "/file.svg"
-    },
-    {
-        id: "PRD-005",
-        name: "SSD Samsung 990 PRO 2TB PCIe Gen 4.0 x4 NVMe",
-        category: "SSD",
-        brand: "Samsung",
-        price: "4.890.000₫",
-        stock: 12,
-        status: "Draft",
-        image: "/file.svg"
-    }
-];
+import { ProductService } from "@/services/product.service";
+import { ProductResponse } from "@/types/product";
 
 export default function AdminProductsPage() {
+    const [products, setProducts] = useState<ProductResponse[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        ProductService.getProducts({}).then(data => {
+            setProducts(data.content);
+            setLoading(false);
+        });
+    }, []);
+
+    if (loading) return <div>Loading...</div>;
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -162,7 +125,7 @@ export default function AdminProductsPage() {
                                     <TableCell>
                                         <div className="h-10 w-10 rounded-md bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200">
                                             <Image
-                                                src={product.image}
+                                                src={product.thumbnailUrl || "/file.svg"}
                                                 alt={product.name}
                                                 width={24}
                                                 height={24}
@@ -174,31 +137,27 @@ export default function AdminProductsPage() {
                                         <div className="font-medium text-slate-900 truncate max-w-[200px]" title={product.name}>
                                             {product.name}
                                         </div>
-                                        <div className="text-xs text-slate-500">{product.id}</div>
+                                        <div className="text-xs text-slate-500">{product.sku}</div>
                                     </TableCell>
-                                    <TableCell>{product.brand}</TableCell>
-                                    <TableCell>{product.category}</TableCell>
-                                    <TableCell>{product.price}</TableCell>
+                                    <TableCell>{product.brandName}</TableCell>
+                                    <TableCell>{product.categoryName}</TableCell>
+                                    <TableCell>{new Intl.NumberFormat('vi-VN').format(product.price)}₫</TableCell>
                                     <TableCell>
-                                        {product.stock > 0 ? (
-                                            <span className="text-slate-700">{product.stock} in stock</span>
+                                        {product.stockQuantity > 0 ? (
+                                            <span className="text-slate-700">{product.stockQuantity} in stock</span>
                                         ) : (
                                             <span className="text-red-500">Out of stock</span>
                                         )}
                                     </TableCell>
                                     <TableCell>
                                         <Badge
-                                            variant={
-                                                product.status === "Active" ? "default" :
-                                                    product.status === "Draft" ? "secondary" : "destructive"
-                                            }
+                                            variant={product.isActive ? "default" : "secondary"}
                                             className={
-                                                product.status === "Active" ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100" :
-                                                    product.status === "Draft" ? "bg-slate-100 text-slate-700 hover:bg-slate-100" :
-                                                        "bg-red-100 text-red-700 hover:bg-red-100"
+                                                product.isActive ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100" :
+                                                    "bg-slate-100 text-slate-700 hover:bg-slate-100"
                                             }
                                         >
-                                            {product.status}
+                                            {product.isActive ? "Active" : "Inactive"}
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="text-right">
@@ -231,11 +190,7 @@ export default function AdminProductsPage() {
                 </div>
 
                 <div className="p-4 border-t border-slate-200 flex items-center justify-between text-sm text-slate-500">
-                    <div>Showing 1 to 5 of 1,254 products</div>
-                    <div className="flex gap-1">
-                        <Button variant="outline" size="sm" disabled>Previous</Button>
-                        <Button variant="outline" size="sm">Next</Button>
-                    </div>
+                    <div>Showing {products.length} products</div>
                 </div>
             </div>
         </div>

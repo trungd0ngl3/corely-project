@@ -1,10 +1,13 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { User, LogOut, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/hooks/use-auth";
+import { UserService } from "@/services/user.service";
+import { AuthService } from "@/services/auth.service";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -12,9 +15,35 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ApiResponse } from "@/types/api";
+import { UserResponse } from "@/types/user";
 
 export function UserDropdown() {
-    const { user, isAuthenticated, isHydrated, logout } = useAuthStore();
+    const { user, isAuthenticated, isHydrated, logout, updateUser, refreshToken } = useAuthStore();
+
+    const handleLogout = async () => {
+        if (refreshToken) {
+            try {
+                await AuthService.logout({ token: refreshToken });
+            } catch (err) {
+                console.error("Logout error:", err);
+            }
+        }
+        logout();
+    };
+
+    useEffect(() => {
+        console.log("UserDropdown effect:", { isHydrated, isAuthenticated, user });
+        if (isHydrated && isAuthenticated && !user) {
+            UserService.getMyInfo().then((res: ApiResponse<UserResponse>) => {
+                console.log("User fetch result:", res);
+                if (res) updateUser(res);
+            }).catch((err) => {
+                console.error("User fetch error:", err);
+                logout();
+            });
+        }
+    }, [isHydrated, isAuthenticated, user, updateUser, logout]);
 
     if (!isHydrated) {
         return (
@@ -34,26 +63,29 @@ export function UserDropdown() {
         );
     }
 
-    const isAdmin = user.role === "ADMIN";
+    const isAdmin = user.roles.includes("ADMIN");
+    const isSeller = user.roles.includes("SELLER");
 
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative hidden sm:flex hover:bg-primary/5 transition-all duration-200">
-                    {user.avatar ? (
+                <Button variant="ghost" size="icon" className="relative hover:bg-primary/5 transition-all duration-200">
+                    {user.avatarUrl ? (
                         <Image
-                            src={user.avatar}
+                            src={user.avatarUrl}
                             alt={user.fullName}
                             width={28}
                             height={28}
                             className="rounded-full object-cover"
                         />
                     ) : (
-                        <User className="h-5 w-5" />
+                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium text-xs">
+                            {user.fullName.charAt(0).toUpperCase()}
+                        </div>
                     )}
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="w-56 bg-white/50 backdrop-blur-sm">
                 <div className="flex items-center justify-start gap-2 p-2">
                     <div className="flex flex-col space-y-1 leading-none">
                         <p className="font-medium">{user.fullName}</p>
@@ -61,10 +93,10 @@ export function UserDropdown() {
                     </div>
                 </div>
                 <DropdownMenuSeparator />
-                {isAdmin && (
+                {(isAdmin || isSeller) && (
                     <>
                         <DropdownMenuItem asChild>
-                            <Link href="/admin" className="cursor-pointer font-medium text-primary-container">
+                            <Link href={isAdmin ? "/admin/dashboard" : "/seller"} className="cursor-pointer font-medium">
                                 <LayoutDashboard className="mr-2 h-4 w-4" />
                                 Dashboard
                             </Link>
@@ -76,19 +108,10 @@ export function UserDropdown() {
                     <Link href="/profile" className="cursor-pointer">Profile</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                    <Link href="/orders" className="cursor-pointer">Orders</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
                     <Link href="/wishlist" className="cursor-pointer">Wishlist</Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                    <Link href="/pc-builder" className="cursor-pointer">PC Builder</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                    <Link href="/addresses" className="cursor-pointer">Addresses</Link>
-                </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => logout()} className="cursor-pointer text-red-600 focus:text-red-600">
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 focus:text-red-600">
                     <LogOut className="mr-2 h-4 w-4" />
                     Logout
                 </DropdownMenuItem>

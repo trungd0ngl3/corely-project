@@ -21,7 +21,7 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { toast } from "sonner";
-import { register } from "@/lib/api";
+import { AuthService } from "@/services/auth.service";
 
 const registerSchema = z.object({
     fullName: z.string().min(2, { message: "Full name must be at least 2 characters" }),
@@ -103,8 +103,13 @@ export default function RegisterPage() {
     const onSubmit = async (data: RegisterFormValues) => {
         setIsLoading(true);
         try {
-            await register(data.fullName, data.email, data.phone, data.password);
-            toast.success("Registration successful! Please check your email to verify your account.");
+            const res = await AuthService.register({
+                fullName: data.fullName,
+                email: data.email,
+                phone: data.phone,
+                password: data.password
+            });
+            toast.success(res.message || "Registration successful!");
             router.push("/auth/login");
         } catch (error) {
             const message = error instanceof Error ? error.message : "Registration failed. Please try again.";

@@ -4,14 +4,14 @@ import { useState, useEffect } from "react";
 import { ProductCard } from "@/components/ui/product-card";
 import { SectionTitle } from "@/components/ui/section-title";
 import { ProductService } from "@/services/product.service";
-import { Product } from "@/types/product";
+import { ProductResponse } from "@/types/product";
 import { cn } from "@/lib/utils";
 
 const TABS = ["All", "Gaming", "Workstation", "Laptop", "Accessories"];
 
 export function FeaturedProducts() {
     const [activeTab, setActiveTab] = useState("All");
-    const [products, setProducts] = useState<Product[]>([]);
+    const [products, setProducts] = useState<ProductResponse[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -22,7 +22,7 @@ export function FeaturedProducts() {
 
     const filteredProducts = activeTab === "All"
         ? products
-        : products.filter(p => p.category === activeTab);
+        : products.filter(p => p.categoryName === activeTab);
 
     if (loading) return <div className="py-16 text-center">Loading...</div>;
 
@@ -57,10 +57,15 @@ export function FeaturedProducts() {
                         <ProductCard
                             key={product.id}
                             id={product.id}
+                            slug={product.slug}
                             name={product.name}
-                            price={product.price}
-                            image={product.images[0]}
-                            brand={product.brand}
+                            price={product.discountPrice ?? product.price}
+                            image={
+                                product.thumbnailUrl ??
+                                product.imageUrls[0] ??
+                                "/images/product-placeholder.png"
+                            }
+                            brand={product.brandName}
                         />
                     ))}
                 </div>

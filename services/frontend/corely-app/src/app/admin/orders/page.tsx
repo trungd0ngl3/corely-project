@@ -1,38 +1,90 @@
-import { Search, Filter, MoreVertical, Eye, Truck, CheckCircle } from "lucide-react";
+"use client";
 
-const MOCK_ADMIN_ORDERS = [
-    {
-        id: "CR-82931",
-        customer: "Trung Dong Le",
-        email: "trung@example.com",
-        date: "2026-06-15",
-        total: 45990000,
-        status: "Processing",
-        payment: "Paid"
-    },
-    {
-        id: "CR-81042",
-        customer: "Nguyen Van A",
-        email: "nva@example.com",
-        date: "2026-05-22",
-        total: 12500000,
-        status: "Shipped",
-        payment: "Paid"
-    },
-    {
-        id: "CR-80912",
-        customer: "Tran Thi B",
-        email: "ttb@example.com",
-        date: "2026-05-20",
-        total: 8900000,
-        status: "Delivered",
-        payment: "Paid"
+import { useState, useEffect } from "react";
+import { Search, Filter, MoreVertical, Eye, Truck, CheckCircle } from "lucide-react";
+import { OrderService } from "@/services/order.service";
+import { StoreService } from "@/services/store.service";
+import { UpdateOrderStatusRequest } from "@/types/order";
+import { OrderResponse } from "@/types/order";
+
+const getNextStatus = (
+    status: OrderResponse["status"]
+): UpdateOrderStatusRequest["status"] | null => {
+    switch (status) {
+        case "PENDING": return "CONFIRMED";
+        case "CONFIRMED": return "PROCESSING";
+        case "PROCESSING": return "SHIPPED";
+        case "SHIPPED": return "DELIVERED";
+        default: return null;
     }
-];
+};
+
+const statusColor: Record<OrderResponse["status"], string> = {
+    PENDING: "bg-yellow-100 text-yellow-700",
+    CONFIRMED: "bg-blue-100 text-blue-700",
+    PROCESSING: "bg-indigo-100 text-indigo-700",
+    SHIPPED: "bg-cyan-100 text-cyan-700",
+    DELIVERED: "bg-green-100 text-green-700",
+    CANCELLED: "bg-red-100 text-red-700",
+    RETURNED: "bg-orange-100 text-orange-700",
+};
+
+const statusText: Record<OrderResponse["status"], string> = {
+    PENDING: "Chờ xác nhận",
+    CONFIRMED: "Đã xác nhận",
+    PROCESSING: "Đang chuẩn bị",
+    SHIPPED: "Đang giao",
+    DELIVERED: "Đã giao",
+    CANCELLED: "Đã hủy",
+    RETURNED: "Đã trả hàng",
+};
 
 export default function AdminOrdersPage() {
+    const [orders, setOrders] = useState<any[]>([]);
+
+    useEffect(() => {
+        StoreService.getStores()
+            .then((store: any) => {
+                console.log("Store:", store);
+
+                const storeId = store.id;
+
+                console.log("storeId =", storeId);
+
+                if (storeId) {
+                    OrderService.getStoreOrder(storeId, {
+                        page: 0,
+                        size: 10,
+                    }).then((oRes: any) => {
+                        console.log("Order response:", oRes);
+
+                        setOrders(oRes.content || []);
+                    });
+                }
+            })
+            .catch(console.error);
+    }, []);
+
+    const updateStatus = async (
+        id: string,
+        status: UpdateOrderStatusRequest["status"]
+    ) => {
+        try {
+            await OrderService.updateOrderStatus(id, { status });
+            setOrders((prev) => prev.map((o) => o.id === id ? { ...o, status } : o));
+        } catch (e) {
+            console.error(e);
+            alert("Cập nhật thất bại.");
+        }
+    };
+
+
     const formatPrice = (val: number) =>
         new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(val);
+
+    const viewDetails = (id: string) => {
+        window.location.href = `/admin/orders/${id}`;
+    };
 
     return (
         <div className="space-y-6">
@@ -77,42 +129,43 @@ export default function AdminOrdersPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-outline-variant">
-                            {MOCK_ADMIN_ORDERS.map((order) => (
+                            {orders.map((order) => (
                                 <tr key={order.id} className="hover:bg-surface-container-low/50 transition-colors">
-                                    <td className="px-6 py-4 font-bold text-on-surface">{order.id}</td>
+                                    <td className="px-6 py-4 font-bold text-on-surface">{order.orderCode}</td>
                                     <td className="px-6 py-4">
-                                        <div className="font-medium text-on-surface">{order.customer}</div>
-                                        <div className="text-xs text-on-surface-variant">{order.email}</div>
+                                        <div className="font-medium text-on-surface">{order.userId}</div>
                                     </td>
-                                    <td className="px-6 py-4 text-on-surface-variant">{order.date}</td>
-                                    <td className="px-6 py-4 font-bold text-primary">{formatPrice(order.total)}</td>
+                                    <td className="px-6 py-4 text-on-surface-variant">{new Date(order.createdAt).toLocaleString("vi-VN")}</td>
+                                    <td className="px-6 py-4 font-bold text-primary">{formatPrice(order.totalAmount)}</td>
                                     <td className="px-6 py-4">
-                                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${order.status === "Delivered"
-                                            ? "bg-success/10 text-success"
-                                            : order.status === "Shipped"
-                                                ? "bg-blue-500/10 text-blue-500"
-                                                : "bg-primary/10 text-primary"
-                                            }`}>
-                                            {order.status}
+                                        <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusColor[order.status as OrderResponse["status"]]}`}>
+                                            {statusText[order.status as OrderResponse["status"]]}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="inline-flex items-center gap-1 text-xs font-medium text-success">
-                                            <CheckCircle className="h-3 w-3" />
-                                            {order.payment}
-                                        </span>
+                                        <div className="text-xs font-medium text-on-surface">{order.paymentMethod}</div>
+                                        <div className="text-xs text-on-surface-variant">{order.paymentStatus}</div>
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            <button className="p-2 text-on-surface-variant hover:text-primary hover:bg-primary/5 rounded-lg transition-colors">
+                                            <button
+                                                onClick={() => viewDetails(order.id)}
+                                                className="p-2 text-on-surface-variant hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"
+                                                title="View Details"
+                                            >
                                                 <Eye className="h-4 w-4" />
                                             </button>
-                                            <button className="p-2 text-on-surface-variant hover:text-primary hover:bg-primary/5 rounded-lg transition-colors">
-                                                <Truck className="h-4 w-4" />
-                                            </button>
-                                            <button className="p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-colors">
-                                                <MoreVertical className="h-4 w-4" />
-                                            </button>
+                                            {(() => {
+                                                const next = getNextStatus(order.status);
+                                                return next ? (
+                                                    <button
+                                                        onClick={() => updateStatus(order.id, next)}
+                                                        className="rounded-lg bg-primary px-3 py-1 text-xs text-white hover:opacity-90"
+                                                    >
+                                                        {next}
+                                                    </button>
+                                                ) : null;
+                                            })()}
                                         </div>
                                     </td>
                                 </tr>

@@ -7,7 +7,10 @@ interface WishlistState {
     isLoading: boolean;
     setWishlist: (items: WishlistItem[], count: number) => void;
     setLoading: (isLoading: boolean) => void;
+    fetchWishlist: () => Promise<void>;
 }
+
+import { WishlistService } from "@/services/wishlist.service";
 
 export const useWishlistStore = create<WishlistState>((set) => ({
     items: [],
@@ -15,4 +18,13 @@ export const useWishlistStore = create<WishlistState>((set) => ({
     isLoading: false,
     setWishlist: (items, count) => set({ items, count }),
     setLoading: (isLoading) => set({ isLoading }),
+    fetchWishlist: async () => {
+        set({ isLoading: true });
+        try {
+            const { data } = await WishlistService.getMyWishlist();
+            set({ items: data.items, count: data.items.length });
+        } finally {
+            set({ isLoading: false });
+        }
+    },
 }));

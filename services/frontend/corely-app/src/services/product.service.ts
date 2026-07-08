@@ -1,12 +1,36 @@
-import { apiFetch } from "@/lib/api-server";
-import { PageProductResponse, Product } from "@/types/product";
+import api from "@/lib/axios";
+import { ApiResponse } from "@/types/api";
+import { ProductResponse, PageProductResponse } from "@/types/product";
+
+export interface ProductFilter {
+    page?: number;
+    size?: number;
+    sort?: string;
+}
 
 export const ProductService = {
-    getActiveProducts: async (page = 0, size = 20, sortBy = "createdAt", sortDir = "DESC") => {
-        const params = new URLSearchParams({ page: String(page), size: String(size), sortBy, sortDir });
-        return await apiFetch<PageProductResponse>(`/products?${params.toString()}`);
+    getProducts: async (params: ProductFilter) => {
+        const res = await api.get<PageProductResponse>("/api/v1/products", {
+            params,
+        });
+        return res.data;
     },
+
     getProductBySlug: async (slug: string) => {
-        return await apiFetch<Product>(`/products/${slug}`);
+        const res = await api.get<ApiResponse<ProductResponse>>(
+            `/api/v1/products/${slug}`
+        );
+        return res.data;
     },
+
+    getActiveProducts: async () => {
+        const res = await api.get<PageProductResponse>("/api/v1/products");
+
+        return res.data;
+    },
+
+    createProduct: async (data: any) => {
+        const res = await api.post("/api/v1/products", data);
+        return res.data;
+    }
 };

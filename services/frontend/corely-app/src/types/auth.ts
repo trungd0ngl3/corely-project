@@ -1,19 +1,34 @@
-import { ApiResponse } from "./api";
-
-export interface User {
-    id: string;
+export interface AuthenticateRequest {
     email: string;
-    fullName: string;
-    avatar?: string;
-    phone?: string;
-    dob?: string;
-    role: string;
-    provider: string;
-    emailVerified: boolean;
+    password: string;
 }
 
-export interface LoginResult {
+export interface AuthenticateResponse {
     token: string;
     refreshToken: string;
     auth: boolean;
+}
+
+export interface UserCreationRequest {
+    email: string;
+    password: string;
+    fullName: string;
+    dateOfBirth?: string;
+    phone?: string;
+}
+
+export interface RefreshTokenRequest {
+    token: string;
+}
+
+export interface LogoutRequest {
+    token: string;
+}
+
+export interface IntrospectRequest {
+    token: string;
+}
+
+export interface IntrospectResponse {
+    valid: boolean;
 }
