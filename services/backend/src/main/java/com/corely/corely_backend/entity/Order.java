@@ -12,21 +12,19 @@ import java.util.UUID;
 @Table(name = "orders")
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Order extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    private BigDecimal totalAmount;
+    private BigDecimal subtotal;
     private BigDecimal shippingFee;
-
-    public BigDecimal getTotalPrice() {
-        if (totalAmount != null && shippingFee != null) {
-            return totalAmount.add(shippingFee);
-        }
-        return totalAmount != null ? totalAmount : BigDecimal.ZERO;
-    }
+    private BigDecimal discount;
+    private BigDecimal totalAmount;
 
     @Enumerated(EnumType.STRING)
     private OrderStatus status;

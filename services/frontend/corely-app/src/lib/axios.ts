@@ -1,33 +1,41 @@
 import axios from "axios";
+import { useAuthStore } from "@/hooks/use-auth";
 
-const apiClient = axios.create({
+const api = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080",
-    headers: {
-        "Content-Type": "application/json",
-    },
+    withCredentials: true,
+    headers: { "Content-Type": "application/json" },
 });
 
-// Request interceptor: attach JWT
-apiClient.interceptors.request.use((config) => {
-    if (typeof window !== "undefined") {
-        const token = localStorage.getItem("token");
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
+api.interceptors.request.use((config) => {
+    const token = useAuthStore.getState().accessToken;
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    } else {
+        delete config.headers.Authorization;
     }
     return config;
 });
 
-// Response interceptor: handle 401
-apiClient.interceptors.response.use(
-    (response) => response,
+api.interceptors.response.use(
+    (response) => {
+        const data = response.data;
+        if (data?.result !== undefined) response.data = data.result;
+        return response;
+    },
     (error) => {
-        if (error.response?.status === 401 && typeof window !== "undefined") {
-            localStorage.removeItem("token");
-            window.location.href = "/login";
+        if (error.response?.status === 401) {
+            useAuthStore.getState().logout();
+            if (
+                typeof window !== "undefined" &&
+                window.location.pathname !== "/auth/login" &&
+                window.location.pathname !== "/auth/register"
+            ) {
+                window.location.href = "/auth/login";
+            }
         }
         return Promise.reject(error);
     }
 );
 
-export default apiClient;
+export default api;

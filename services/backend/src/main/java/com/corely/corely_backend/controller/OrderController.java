@@ -1,16 +1,17 @@
 package com.corely.corely_backend.controller;
 
 import com.corely.corely_backend.dto.request.order.OrderCreationRequest;
+import com.corely.corely_backend.dto.request.order.UpdateOrderStatusRequest;
 import com.corely.corely_backend.dto.response.ApiResponse;
 import com.corely.corely_backend.dto.response.order.OrderResponse;
-import com.corely.corely_backend.enums.OrderStatus;
 import com.corely.corely_backend.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -28,24 +29,27 @@ public class OrderController {
                 .build();
     }
 
-    @GetMapping("/my-orders")
-    public ApiResponse<List<OrderResponse>> getMyOrders() {
-        return ApiResponse.<List<OrderResponse>>builder()
-                .result(orderService.getMyOrders())
+    @GetMapping("/my-order")
+    public ApiResponse<Page<OrderResponse>> getMyOrder(Pageable pageable) {
+        return ApiResponse.<org.springframework.data.domain.Page<OrderResponse>>builder()
+                .result(orderService.getMyOrder(pageable))
                 .build();
     }
 
     @GetMapping("/store/{storeId}")
-    public ApiResponse<List<OrderResponse>> getStoreOrders(@PathVariable UUID storeId) {
-        return ApiResponse.<List<OrderResponse>>builder()
-                .result(orderService.getStoreOrders(storeId))
+    public ApiResponse<Page<OrderResponse>> getStoreOrder(
+            @PathVariable UUID storeId,
+            Pageable pageable) {
+        return ApiResponse.<org.springframework.data.domain.Page<OrderResponse>>builder()
+                .result(orderService.getStoreOrder(pageable))
                 .build();
     }
 
     @PutMapping("/{orderId}/status")
-    public ApiResponse<OrderResponse> updateOrderStatus(@PathVariable UUID orderId, @RequestParam OrderStatus status) {
+    public ApiResponse<OrderResponse> updateOrderStatus(@PathVariable UUID orderId,
+            @RequestBody UpdateOrderStatusRequest request) {
         return ApiResponse.<OrderResponse>builder()
-                .result(orderService.updateOrderStatus(orderId, status))
+                .result(orderService.updateOrderStatus(orderId, request.getStatus()))
                 .build();
     }
 }

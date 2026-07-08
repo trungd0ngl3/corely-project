@@ -65,13 +65,20 @@ public class AuthenticationService {
     }
 
     public AuthenticateResponse authenticate(AuthenticateRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
+        User user = userRepository.findByEmailAndIsActiveTrue(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        // Allow admin to login via local even if provider is not local
+        if (!"local".equals(user.getProvider())
+                && user.getRoles().stream().noneMatch(role -> "ADMIN".equals(role.getName()))) {
+            throw new AppException(ErrorCode.USE_SOCIAL_LOGIN);
+        }
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
+        log.info("User {} logged in", request.getEmail());
         return generateTokenPair(user);
     }
 
@@ -123,6 +130,7 @@ public class AuthenticationService {
                 .jwtID(UUID.randomUUID().toString())
                 .claim("scope", buildScope(user))
                 .claim("userId", user.getId().toString())
+                .claim("type", "access")
                 .build();
 
         JWSObject jwsObject = new JWSObject(jwsHeader, claimsSet.toPayload());
@@ -139,6 +147,10 @@ public class AuthenticationService {
     public SignedJWT verifyToken(String token, boolean isRefreshed) throws JOSEException, ParseException {
         JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes(StandardCharsets.UTF_8));
         SignedJWT signedJWT = SignedJWT.parse(token);
+
+        if (isRefreshed && !"refresh".equals(signedJWT.getJWTClaimsSet().getStringClaim("type"))) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
 
         Date expiredDate = isRefreshed
                 ? new Date(signedJWT.getJWTClaimsSet().getIssueTime()
@@ -158,6 +170,7 @@ public class AuthenticationService {
         return signedJWT;
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public AuthenticateResponse refreshToken(String token) throws JOSEException, ParseException {
         SignedJWT signedJWT = verifyToken(token, true);
 
@@ -170,12 +183,14 @@ public class AuthenticationService {
 
         // Generate new token
         String email = signedJWT.getJWTClaimsSet().getSubject();
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailAndIsActiveTrue(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
+        log.info("User {} refreshed token", email);
         return generateTokenPair(user);
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public void logout(LogoutRequest request) throws JOSEException, ParseException {
         try {
             SignedJWT signedToken = verifyToken(request.getToken(), true);
@@ -184,8 +199,13 @@ public class AuthenticationService {
 
             invalidatedTokenRepository.save(
                     InvalidatedToken.builder().id(jit).expiryDate(expiryDate).build());
+            log.info("User {} logged out", signedToken.getJWTClaimsSet().getSubject());
         } catch (AppException e) {
-            log.info("Token already logged out");
+            if (e.getErrorCode() == ErrorCode.UNAUTHENTICATED) {
+                log.info("Token already logged out");
+            } else {
+                throw e;
+            }
         }
     }
 

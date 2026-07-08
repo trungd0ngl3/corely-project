@@ -31,15 +31,15 @@ public class SecurityConfig {
         private final CustomOAuth2UserService customOAuth2UserService;
 
         private static final String[] PUBLIC_ENDPOINTS = {
-                        "/api/auth/**",
+                        "/api/v1/auth/**",
                         "/swagger-ui/**",
                         "/v3/api-docs/**",
                         "/swagger-resources/**",
                         "/swagger-ui.html",
-                        "/api/products/**",
-                        "/api/categories/**",
-                        "/api/brands/**",
-                        "/api/stores/*/products/**",
+                        "/api/v1/products/**",
+                        "/api/v1/categories/**",
+                        "/api/v1/brands/**",
+                        "/api/v1/stores/*/products/**",
                         "/oauth2/**",
                         "/login/oauth2/**",
                         "/actuator/health",

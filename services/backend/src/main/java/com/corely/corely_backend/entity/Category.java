@@ -2,24 +2,31 @@ package com.corely.corely_backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
+import lombok.experimental.FieldDefaults;
+import java.util.UUID;
 
 @Entity
 @Table(name = "categories")
 @Getter
 @Setter
-public class Category {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class Category extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    UUID id;
 
-    private String name;
+    @Column(nullable = false, unique = true)
+    String name;
 
-    @Column(unique = true)
-    private String slug;
+    @Column(nullable = false, unique = true)
+    String slug;
 
-    @ManyToOne
-    @JoinColumn(name = "parent_id")
-    private Category parent;
+    String description;
+
+    @Builder.Default
+    Boolean isActive = true;
 }

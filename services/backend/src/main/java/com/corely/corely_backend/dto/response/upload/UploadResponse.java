@@ -1,15 +1,18 @@
 package com.corely.corely_backend.dto.response.upload;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 @Data
 @AllArgsConstructor
 @Builder
 @NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class UploadResponse {
+    String publicId;
     String url;
-    String publicID;
+    Integer width;
+    Integer height;
+    Long bytes;
+    String format;
 }

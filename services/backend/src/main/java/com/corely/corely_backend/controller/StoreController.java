@@ -1,30 +1,35 @@
 package com.corely.corely_backend.controller;
 
-import com.corely.corely_backend.dto.request.store.StoreCreationRequest;
+import com.corely.corely_backend.dto.request.store.StoreUpdateRequest;
+import com.corely.corely_backend.dto.response.ApiResponse;
 import com.corely.corely_backend.dto.response.store.StoreResponse;
 import com.corely.corely_backend.service.StoreService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/stores")
+@RequestMapping("/api/v1/store")
 @RequiredArgsConstructor
-@FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
 public class StoreController {
 
-    StoreService storeService;
+    private final StoreService storeService;
 
-    @PostMapping
-    public ResponseEntity<StoreResponse> createStore(@RequestBody @Valid StoreCreationRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(storeService.createStore(request));
+    @GetMapping
+    public ApiResponse<StoreResponse> getStore() {
+        return ApiResponse.<StoreResponse>builder()
+                .result(storeService.getStore())
+                .build();
     }
 
-    @GetMapping("/{slug}")
-    public ResponseEntity<StoreResponse> getStoreBySlug(@PathVariable String slug) {
-        return ResponseEntity.ok(storeService.getStoreBySlug(slug));
+    @PutMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<StoreResponse> updateStore(
+            @RequestBody @Valid StoreUpdateRequest request) {
+
+        return ApiResponse.<StoreResponse>builder()
+                .result(storeService.updateStore(request))
+                .build();
     }
 }

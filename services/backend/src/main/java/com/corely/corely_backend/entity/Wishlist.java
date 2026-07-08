@@ -1,9 +1,9 @@
 package com.corely.corely_backend.entity;
 
-
 import jakarta.persistence.*;
 import lombok.*;
-
+import lombok.experimental.FieldDefaults;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -11,15 +11,25 @@ import java.util.UUID;
 @Table(name = "wishlists")
 @Getter
 @Setter
-public class Wishlist {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class Wishlist extends BaseEntity {
 
     @Id
-    @GeneratedValue
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    UUID id;
 
-    @OneToOne
-    private User user;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    User user;
 
-    @OneToMany(mappedBy = "wishlist", cascade = CascadeType.ALL)
-    private List<WishlistItem> items;
+    @OneToMany(
+        mappedBy = "wishlist",
+        cascade = CascadeType.ALL,
+        orphanRemoval = true
+    )
+    @Builder.Default
+    List<WishlistItem> items = new ArrayList<>();
 }

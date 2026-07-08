@@ -1,27 +1,30 @@
 package com.corely.corely_backend.entity;
 
-
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
+import java.util.UUID;
 
 @Entity
-@Table(name = "reviews")
 @Getter
 @Setter
-public class Review {
-
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class Review extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    UUID id;
 
-    private Integer rating;
-
-    @Column(columnDefinition = "TEXT")
-    private String comment;
+    int rating;
+    String comment;
 
     @ManyToOne
-    private Product product;
+    @JoinColumn(name = "product_id")
+    Product product;
 
     @ManyToOne
-    private User user;
+    @JoinColumn(name = "user_id")
+    User user;
 }

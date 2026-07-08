@@ -22,10 +22,7 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
@@ -65,7 +62,7 @@ public class PaymentService {
         Payment payment = Payment.builder()
                 .order(order)
                 .paymentMethod("VNPAY")
-                .amount(order.getTotalPrice())
+                .amount(order.getTotalAmount())
                 .status("PENDING")
                 .build();
 
@@ -75,7 +72,7 @@ public class PaymentService {
         vnpParams.put("vnp_Version", "2.1.0");
         vnpParams.put("vnp_Command", "pay");
         vnpParams.put("vnp_TmnCode", vnpayTmnCode);
-        vnpParams.put("vnp_Amount", String.valueOf(order.getTotalPrice().multiply(new BigDecimal(100)).longValue()));
+        vnpParams.put("vnp_Amount", String.valueOf(order.getTotalAmount().multiply(new BigDecimal(100)).longValue()));
         vnpParams.put("vnp_CurrCode", "VND");
         vnpParams.put("vnp_TxnRef", payment.getId().toString());
         vnpParams.put("vnp_OrderInfo", "Payment for order " + orderId);
