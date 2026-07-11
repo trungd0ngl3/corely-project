@@ -1,50 +1,86 @@
 package com.corely.corely_backend.exception;
 
 import com.corely.corely_backend.dto.response.ApiResponse;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@ControllerAdvice
+@Slf4j
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = RuntimeException.class)
-    ResponseEntity<ApiResponse<Object>> handlingRuntimeException(RuntimeException exception) {
-        ApiResponse<Object> apiResponse = new ApiResponse<>();
-
-        apiResponse.setCode(ErrorCode.UNCATEGORIZED_ERROR.getCode());
-        apiResponse.setMessage(exception.getMessage());
-
-        return ResponseEntity.status(ErrorCode.UNCATEGORIZED_ERROR.getStatusCode()).body(apiResponse);
+    public ResponseEntity<ApiResponse<Object>> handleRuntimeException(RuntimeException exception) {
+        log.error("Unexpected exception", exception);
+        return buildResponse(ErrorCode.UNCATEGORIZED_ERROR);
     }
 
     @ExceptionHandler(value = AppException.class)
-    ResponseEntity<ApiResponse<Object>> handlingAppException(AppException exception) {
-        ErrorCode errorCode = exception.getErrorCode();
-        ApiResponse<Object> apiResponse = new ApiResponse<>();
-
-        apiResponse.setCode(errorCode.getCode());
-        apiResponse.setMessage(errorCode.getMessage());
-
-        return ResponseEntity.status(errorCode.getStatusCode()).body(apiResponse);
+    public ResponseEntity<ApiResponse<Object>> handleAppException(AppException exception) {
+        log.warn("Business exception [{}]: {}", exception.getErrorCode().getCode(), exception.getErrorCode().getMessage());
+        return buildResponse(exception.getErrorCode());
     }
 
-    @ExceptionHandler(value = org.springframework.security.access.AccessDeniedException.class)
-    ResponseEntity<ApiResponse<Object>> handlingAccessDeniedException(org.springframework.security.access.AccessDeniedException exception) {
-        ErrorCode errorCode = ErrorCode.UNAUTHORIZED;
-        ApiResponse<Object> apiResponse = new ApiResponse<>();
-        apiResponse.setCode(errorCode.getCode());
-        apiResponse.setMessage(errorCode.getMessage());
-        return ResponseEntity.status(errorCode.getStatusCode()).body(apiResponse);
+    @ExceptionHandler(value = AccessDeniedException.class)
+    public ResponseEntity<ApiResponse<Object>> handleAccessDeniedException(AccessDeniedException exception) {
+        log.warn("Access denied: {}", exception.getMessage());
+        return buildResponse(ErrorCode.FORBIDDEN);
     }
 
-    @ExceptionHandler(value = org.springframework.security.core.AuthenticationException.class)
-    ResponseEntity<ApiResponse<Object>> handlingAuthenticationException(org.springframework.security.core.AuthenticationException exception) {
-        ErrorCode errorCode = ErrorCode.UNAUTHENTICATED;
-        ApiResponse<Object> apiResponse = ApiResponse.builder()
-                .code(errorCode.getCode())
-                .message(errorCode.getMessage())
-                .build();
-        return ResponseEntity.status(errorCode.getStatusCode()).body(apiResponse);
+    @ExceptionHandler(value = MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<Object>> handleValidationException(MethodArgumentNotValidException ex) {
+        String message = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .findFirst()
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .orElse(ErrorCode.INVALID_REQUEST_DATA.getMessage());
+        
+        log.warn("Validation failed: {}", message);
+        return buildResponse(ErrorCode.INVALID_REQUEST_DATA, message);
+    }
+
+    @ExceptionHandler(value = ConstraintViolationException.class)
+    public ResponseEntity<ApiResponse<Object>> handleConstraintViolationException(ConstraintViolationException ex) {
+        String message = ex.getConstraintViolations()
+                .stream()
+                .findFirst()
+                .map(ConstraintViolation::getMessage)
+                .orElse(ErrorCode.INVALID_REQUEST_DATA.getMessage());
+        
+        log.warn("Constraint violation: {}", message);
+        return buildResponse(ErrorCode.INVALID_REQUEST_DATA, message);
+    }
+
+    @ExceptionHandler(value = IllegalArgumentException.class)
+    public ResponseEntity<ApiResponse<Object>> handleIllegalArgumentException(IllegalArgumentException ex) {
+        log.warn("Illegal argument: {}", ex.getMessage());
+        return buildResponse(ErrorCode.INVALID_REQUEST_DATA, ex.getMessage());
+    }
+
+    @ExceptionHandler(value = HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<Object>> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        log.warn("Invalid request body: {}", ex.getMessage());
+        return buildResponse(ErrorCode.INVALID_REQUEST);
+    }
+
+    private ResponseEntity<ApiResponse<Object>> buildResponse(ErrorCode errorCode) {
+        return buildResponse(errorCode, errorCode.getMessage());
+    }
+
+    private ResponseEntity<ApiResponse<Object>> buildResponse(ErrorCode errorCode, String message) {
+        return ResponseEntity
+                .status(errorCode.getStatusCode())
+                .body(ApiResponse.builder()
+                        .code(errorCode.getCode())
+                        .message(message)
+                        .build());
     }
 }

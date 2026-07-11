@@ -1,4 +1,4 @@
-package com.corely.corely_backend.configuration;
+package com.corely.corely_backend.recurity;
 
 import com.corely.corely_backend.dto.response.auth.AuthenticateResponse;
 import com.corely.corely_backend.entity.User;

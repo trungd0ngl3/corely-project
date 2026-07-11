@@ -1,4 +1,4 @@
-package com.corely.corely_backend.configuration;
+package com.corely.corely_backend.recurity;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

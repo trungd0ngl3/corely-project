@@ -46,7 +46,7 @@ public class BrandService {
     public BrandResponse createBrand(BrandRequest request) {
         String slug = generateSlug(request.getName());
         if (brandRepository.existsBySlug(slug))
-            throw new AppException(ErrorCode.BRAND_EXISTED);
+            throw new AppException(ErrorCode.BRAND_ALREADY_EXISTS);
         
         Brand brand = brandMapper.toBrand(request);
         brand.setSlug(slug);

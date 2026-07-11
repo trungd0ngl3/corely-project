@@ -44,7 +44,7 @@ public class ReviewService {
         var user = getCurrentUser();
 
         if (reviewRepository.existsByUserIdAndProductId(user.getId(), productId))
-            throw new AppException(ErrorCode.REVIEW_ALREADY_EXIST);
+            throw new AppException(ErrorCode.REVIEW_ALREADY_EXISTS);
 
         Review review = reviewMapper.toReview(request);
         review.setProduct(product);
@@ -59,7 +59,7 @@ public class ReviewService {
                 .orElseThrow(() -> new AppException(ErrorCode.REVIEW_NOT_FOUND));
 
         if (!review.getUser().getId().equals(getCurrentUser().getId()))
-            throw new AppException(ErrorCode.UNAUTHORIZED);
+            throw new AppException(ErrorCode.FORBIDDEN);
 
         review.setRating(request.getRating());
         review.setComment(request.getComment());
@@ -75,7 +75,7 @@ public class ReviewService {
         boolean isAdmin = user.getRoles().stream().anyMatch(r -> r.getName().equals("ADMIN"));
 
         if (!review.getUser().getId().equals(user.getId()) && !isAdmin)
-            throw new AppException(ErrorCode.UNAUTHORIZED);
+            throw new AppException(ErrorCode.FORBIDDEN);
 
         reviewRepository.delete(review);
     }

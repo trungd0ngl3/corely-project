@@ -32,6 +32,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.StringJoiner;
 import java.util.UUID;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -170,7 +171,7 @@ public class AuthenticationService {
         return signedJWT;
     }
 
-    @org.springframework.transaction.annotation.Transactional
+    @Transactional
     public AuthenticateResponse refreshToken(String token) throws JOSEException, ParseException {
         SignedJWT signedJWT = verifyToken(token, true);
 
@@ -190,7 +191,7 @@ public class AuthenticationService {
         return generateTokenPair(user);
     }
 
-    @org.springframework.transaction.annotation.Transactional
+    @Transactional
     public void logout(LogoutRequest request) throws JOSEException, ParseException {
         try {
             SignedJWT signedToken = verifyToken(request.getToken(), true);

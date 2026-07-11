@@ -162,7 +162,7 @@ public class OrderService {
                 .anyMatch(r -> r.getName().equals("ADMIN"));
 
         if (!isOwner && !isAdmin) {
-            throw new AppException(ErrorCode.UNAUTHORIZED);
+            throw new AppException(ErrorCode.FORBIDDEN);
         }
 
         return orderMapper.toOrderResponse(order);
@@ -179,7 +179,7 @@ public class OrderService {
                 .anyMatch(r -> r.getName().equals("ADMIN"));
 
         if (!isAdmin) {
-            throw new AppException(ErrorCode.UNAUTHORIZED);
+            throw new AppException(ErrorCode.FORBIDDEN);
         }
 
         if (!order.getStatus().canTransitionTo(status)) {

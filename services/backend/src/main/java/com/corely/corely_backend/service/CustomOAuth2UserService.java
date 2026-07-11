@@ -1,6 +1,6 @@
 package com.corely.corely_backend.service;
 
-import com.corely.corely_backend.configuration.CustomOAuth2User;
+import com.corely.corely_backend.recurity.CustomOAuth2User;
 import com.corely.corely_backend.dto.OAuth2UserInfo;
 import com.corely.corely_backend.entity.User;
 import lombok.RequiredArgsConstructor;
