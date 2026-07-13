@@ -24,6 +24,13 @@ public enum ErrorCode {
     UNAUTHENTICATED(2001, "Unauthenticated", HttpStatus.UNAUTHORIZED),
     FORBIDDEN(2002, "You do not have permission", HttpStatus.FORBIDDEN),
     USE_SOCIAL_LOGIN(2003, "Please use social login", HttpStatus.BAD_REQUEST),
+    JWT_GENERATION_FAILED(2004, "JWT generation failed", HttpStatus.BAD_REQUEST),
+    EMAIL_NOT_VERIFIED(2005, "Email not verified", HttpStatus.BAD_REQUEST),
+    ACCOUNT_NOT_ACTIVATED(2006, "Account not activated", HttpStatus.BAD_REQUEST),
+    INVALID_VERIFICATION_TOKEN(2007, "Invalid verification token", HttpStatus.BAD_REQUEST),
+    VERIFICATION_TOKEN_EXPIRED(2008, "Verification token expired", HttpStatus.BAD_REQUEST),
+    VERIFICATION_TOKEN_ALREADY_USED(2009, "Verification token already used", HttpStatus.BAD_REQUEST),
+    EMAIL_ALREADY_VERIFIED(2010, "Email already verified", HttpStatus.BAD_REQUEST),
 
     // 3xxx User
     USER_ALREADY_EXISTS(3001, "User already exists", HttpStatus.BAD_REQUEST),

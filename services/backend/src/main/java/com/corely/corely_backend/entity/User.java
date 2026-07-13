@@ -43,7 +43,12 @@ public class User extends BaseEntity {
     Set<Role> roles;
 
     @Builder.Default
-    Boolean isActive = true;
+    @Column(nullable = false)
+    Boolean emailVerified = false;
+
+    @Builder.Default
+    @Column(nullable = false)
+    Boolean isActive = false;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     List<Address> addresses;

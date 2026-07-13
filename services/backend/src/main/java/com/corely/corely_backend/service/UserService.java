@@ -47,7 +47,8 @@ public class UserService {
                 .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
         user.setRoles(Set.of(role));
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setIsActive(true);
+        user.setEmailVerified(false);
+        user.setIsActive(false);
         user.setProvider("local");
 
         log.info("Creating user {}", request.getEmail());
@@ -92,39 +93,6 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
         log.info("User {} changed password", user.getId());
-    }
-
-    public User processOAuth2User(String email, String name, String picture, String provider, String providerId) {
-        return userRepository.findByEmail(email)
-                .map(existingUser -> {
-                    if (existingUser.getProvider() == null) {
-                        existingUser.setProvider(provider);
-                        existingUser.setProviderId(providerId);
-                    }
-                    if (existingUser.getAvatarUrl() == null && picture != null) {
-                        existingUser.setAvatarUrl(picture);
-                    }
-                    if (!existingUser.getIsActive()) {
-                        existingUser.setIsActive(true);
-                    }
-                    return userRepository.save(existingUser);
-                })
-                .orElseGet(() -> {
-                    var userRole = roleRepository.findById("USER");
-                    Set<Role> roles = new HashSet<>();
-                    userRole.ifPresent(roles::add);
-
-                    User newUser = User.builder()
-                            .email(email)
-                            .fullName(name)
-                            .avatarUrl(picture)
-                            .provider(provider)
-                            .providerId(providerId)
-                            .roles(roles)
-                            .isActive(true)
-                            .build();
-                    return userRepository.save(newUser);
-                });
     }
 
     @Transactional

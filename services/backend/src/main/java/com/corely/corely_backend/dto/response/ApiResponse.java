@@ -13,4 +13,14 @@ public class ApiResponse<T> {
     int code;
     String message;
     T result;
+
+    public static <T> ApiResponse<T> success(T result) {
+        return  ApiResponse.<T>builder()
+                .code(200)
+                .message("Success")
+                .result(result)
+                .build();
+    }
+
+
 }
