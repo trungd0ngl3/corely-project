@@ -102,8 +102,7 @@ public class AuthenticationService {
         Date expiryDate = signedJWT.getJWTClaimsSet().getExpirationTime();
 
         // Invalidate old token
-        invalidatedTokenRepository.save(
-                InvalidatedToken.builder().id(jit).expiryDate(expiryDate).build());
+        invalidatedTokenRepository.save( InvalidatedToken.builder().id(jit).expiryTime(expiryDate.toInstant()).build());
 
         // Generate new token
         String email = signedJWT.getJWTClaimsSet().getSubject();
@@ -121,8 +120,7 @@ public class AuthenticationService {
             String jit = signedToken.getJWTClaimsSet().getJWTID();
             Date expiryDate = signedToken.getJWTClaimsSet().getExpirationTime();
 
-            invalidatedTokenRepository.save(
-                    InvalidatedToken.builder().id(jit).expiryDate(expiryDate).build());
+            invalidatedTokenRepository.save(InvalidatedToken.builder().id(jit).expiryTime(expiryDate.toInstant()).build());
             log.info("User {} logged out", signedToken.getJWTClaimsSet().getSubject());
         }
         catch (AppException e) {
@@ -202,9 +200,7 @@ public class AuthenticationService {
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
 
         userRepository.save(user);
-
         passwordResetTokenRepository.deleteByUser(user);
-
         invalidatedTokenRepository.deleteByUser(user);    
     }
 

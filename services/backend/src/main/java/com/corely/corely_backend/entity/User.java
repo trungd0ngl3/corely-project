@@ -30,7 +30,12 @@ public class User extends BaseEntity {
 
     String fullName;
     String phone;
-    String avatarUrl;
+    
+    @Column(length = 500)
+    String avatarUrl;   
+
+    @Column(length = 200)
+    String avatarPublicId;
 
     LocalDate dateOfBirth;
 

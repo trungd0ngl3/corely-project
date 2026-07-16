@@ -4,8 +4,10 @@ import com.corely.corely_backend.dto.request.auth.UpdateProfileRequest;
 import com.corely.corely_backend.dto.request.auth.UserCreationRequest;
 import com.corely.corely_backend.dto.request.auth.UserUpdateRequest;
 import com.corely.corely_backend.dto.response.auth.UserResponse;
+import com.corely.corely_backend.dto.response.upload.UploadResponse;
 import com.corely.corely_backend.entity.Role;
 import com.corely.corely_backend.entity.User;
+import com.corely.corely_backend.enums.UploadFolder;
 import com.corely.corely_backend.exception.AppException;
 import com.corely.corely_backend.exception.ErrorCode;
 import com.corely.corely_backend.mapper.UserMapper;
@@ -21,6 +23,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -33,6 +36,8 @@ import java.util.UUID;
 public class UserService {
     UserRepository userRepository;
     RoleRepository roleRepository;
+
+    UploadService uploadService;
 
     PasswordEncoder passwordEncoder;
 
@@ -84,6 +89,30 @@ public class UserService {
         log.info("User {} deactivated own account", user.getId());
     }
 
+    @Transactional
+public UserResponse uploadAvatar(MultipartFile file) {
+
+    User user = getCurrentUser();
+
+    String oldPublicId = user.getAvatarPublicId();
+
+    UploadResponse upload = uploadService.uploadImage(file, UploadFolder.AVATAR);
+
+    user.setAvatarUrl(upload.getUrl());
+    user.setAvatarPublicId(upload.getPublicId());
+
+    userRepository.save(user);
+
+    if (oldPublicId != null) {
+        try {
+            uploadService.deleteImage(oldPublicId);
+        } catch (Exception e) {
+            log.warn("Cannot delete old avatar {}", oldPublicId);
+        }
+    }
+
+    return userMapper.toUserResponse(user);
+}
 
     @Transactional
     public UserResponse updateUser(@NonNull UUID userId, UserUpdateRequest request) {
@@ -125,7 +154,7 @@ public class UserService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND)));
     }
 
-    User getCurrentUser() {
+    public User getCurrentUser() {
         return securityUtils.getCurrentUser();
     }
 

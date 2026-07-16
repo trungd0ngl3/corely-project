@@ -76,7 +76,9 @@ public enum ErrorCode {
     INVALID_FILE(8002, "Invalid file", HttpStatus.BAD_REQUEST),
     FILE_TOO_LARGE(8003, "File too large", HttpStatus.BAD_REQUEST),
     INVALID_FILE_TYPE(8004, "Invalid file type", HttpStatus.BAD_REQUEST),
-
+    FILE_EMPTY(8005, "File is empty", HttpStatus.BAD_REQUEST),
+    IMAGE_DELETE_FAILED(8006, "Image delete failed", HttpStatus.INTERNAL_SERVER_ERROR),
+    
     // Other
     UNCATEGORIZED_ERROR(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR),
     ADDRESS_NOT_FOUND(9001, "Address not found", HttpStatus.NOT_FOUND),

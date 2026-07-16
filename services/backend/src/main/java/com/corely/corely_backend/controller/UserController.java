@@ -37,9 +37,4 @@ public class UserController {
         return ApiResponse.<Void>builder().build();
     }
 
-    @PutMapping("/me/password")
-    public ApiResponse<Void> changePassword(@RequestBody @Valid ChangePasswordRequest request) {
-        userService.changePassword(request);
-        return ApiResponse.<Void>builder().build();
-    }
 }
