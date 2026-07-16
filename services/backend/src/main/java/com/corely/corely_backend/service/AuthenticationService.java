@@ -1,39 +1,30 @@
 package com.corely.corely_backend.service;
 
-import com.corely.corely_backend.dto.request.auth.AuthenticateRequest;
-import com.corely.corely_backend.dto.request.auth.IntrospectRequest;
-import com.corely.corely_backend.dto.request.auth.LogoutRequest;
-import com.corely.corely_backend.dto.request.auth.ResendVerificationRequest;
-import com.corely.corely_backend.dto.request.auth.UserCreationRequest;
+import com.corely.corely_backend.dto.request.auth.*;
 import com.corely.corely_backend.dto.response.auth.AuthenticateResponse;
 import com.corely.corely_backend.dto.response.auth.IntrospectResponse;
 import com.corely.corely_backend.dto.response.auth.UserResponse;
 import com.corely.corely_backend.entity.InvalidatedToken;
+import com.corely.corely_backend.entity.PasswordResetToken;
 import com.corely.corely_backend.entity.Role;
 import com.corely.corely_backend.entity.User;
 import com.corely.corely_backend.exception.AppException;
 import com.corely.corely_backend.exception.ErrorCode;
 import com.corely.corely_backend.repository.InvalidatedTokenRepository;
+import com.corely.corely_backend.repository.PasswordResetTokenRepository;
 import com.corely.corely_backend.repository.RoleRepository;
 import com.corely.corely_backend.repository.UserRepository;
+import com.corely.corely_backend.util.SecurityUtils;
 import com.nimbusds.jose.*;
-import com.nimbusds.jose.crypto.MACSigner;
-import com.nimbusds.jose.crypto.MACVerifier;
-import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
-import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -45,12 +36,16 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthenticationService {
     JwtService jwtService;
     UserService userService;
+    MailService mailService;
 
     UserRepository userRepository;
     RoleRepository roleRepository;
     InvalidatedTokenRepository invalidatedTokenRepository;
     PasswordEncoder passwordEncoder;
     EmailVerificationService emailVerificationService;
+    PasswordResetTokenRepository passwordResetTokenRepository;
+
+    SecurityUtils securityUtils;
 
     public UserResponse register(UserCreationRequest request){
         UserResponse userResponse = userService.createUser(request);
@@ -187,6 +182,60 @@ public class AuthenticationService {
                 });
     }
 
+    @Transactional
+    public void changePassword(ChangePasswordRequest request) {
 
+        User user = securityUtils.getCurrentUser();
 
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new AppException(ErrorCode.INVALID_PASSWORD);
+        }
+
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
+        }
+
+        if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
+            throw new AppException(ErrorCode.NEW_PASSWORD_MUST_BE_DIFFERENT);
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+
+        userRepository.save(user);
+
+        passwordResetTokenRepository.deleteByUser(user);
+
+        invalidatedTokenRepository.deleteByUser(user);    
+    }
+
+    @Transactional
+    public void forgotPassword(ForgotPasswordRequest request) {
+        Optional<User> optionalUser = userRepository.findByEmail(request.getEmail());
+        if (optionalUser.isEmpty()) {return;}
+        User user = optionalUser.get();
+        passwordResetTokenRepository.deleteByUser(user);
+        String token = UUID.randomUUID().toString();
+        PasswordResetToken passwordResetToken = PasswordResetToken.builder()
+                .token(token)
+                .user(user)
+                .expiresAt(LocalDateTime.now().plusMinutes(15))
+                .build();
+        passwordResetTokenRepository.save(passwordResetToken);
+        mailService.sendPasswordResetEmail(user, token);
+    }
+
+    @Transactional
+    public void resetPassword(ResetPasswordRequest request) {
+        PasswordResetToken token = passwordResetTokenRepository.findByTokenAndUsedFalse(request.getToken())
+                .orElseThrow(() -> new AppException(ErrorCode.PASSWORD_RESET_TOKEN_INVALID));
+        if (token.isExpired()) {
+            throw new AppException(ErrorCode.PASSWORD_RESET_TOKEN_EXPIRED);
+        }
+        User user = token.getUser();
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+        token.setUsed(true);
+        passwordResetTokenRepository.save(token);
+        passwordResetTokenRepository.deleteByUser(user);
+    }
 }

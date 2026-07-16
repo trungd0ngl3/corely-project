@@ -19,6 +19,9 @@ public enum ErrorCode {
     INVALID_PASSWORD(1029, "Invalid password", HttpStatus.BAD_REQUEST),
     PASSWORD_NOT_MATCH(1030, "Passwords do not match", HttpStatus.BAD_REQUEST),
     NEW_PASSWORD_MUST_BE_DIFFERENT(1031, "New password must be different from old password", HttpStatus.BAD_REQUEST),
+    PASSWORD_RESET_TOKEN_INVALID(1101, "Password reset token is invalid", HttpStatus.BAD_REQUEST),
+    PASSWORD_RESET_TOKEN_EXPIRED(1102, "Password reset token has expired", HttpStatus.BAD_REQUEST),
+    PASSWORD_RESET_TOKEN_USED(1103, "Password reset token has already been used", HttpStatus.BAD_REQUEST),
 
     // 2xxx Authentication
     UNAUTHENTICATED(2001, "Unauthenticated", HttpStatus.UNAUTHORIZED),

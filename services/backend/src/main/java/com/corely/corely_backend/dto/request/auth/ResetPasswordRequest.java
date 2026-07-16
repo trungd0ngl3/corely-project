@@ -5,22 +5,18 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-@Getter
-@Setter
+@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Data
-public class ChangePasswordRequest {
+public class ResetPasswordRequest {
 
-    @NotBlank(message = "CURRENT_PASSWORD_REQUIRED")
-    String currentPassword;
+    @NotBlank(message = "TOKEN_REQUIRED")
+    String token;
 
-    @NotBlank(message = "NEW_PASSWORD_REQUIRED")
+    @NotBlank(message = "PASSWORD_REQUIRED")
     @Size(min = 8, max = 100)
     String newPassword;
 
-    @NotBlank(message = "CONFIRM_PASSWORD_REQUIRED")
-    String confirmPassword;
 }

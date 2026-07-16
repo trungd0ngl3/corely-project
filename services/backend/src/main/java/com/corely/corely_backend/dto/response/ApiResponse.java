@@ -16,11 +16,32 @@ public class ApiResponse<T> {
 
     public static <T> ApiResponse<T> success(T result) {
         return  ApiResponse.<T>builder()
-                .code(200)
+                .code(1000)
                 .message("Success")
                 .result(result)
                 .build();
     }
 
+    public static <T> ApiResponse<T> success() {
+        return  ApiResponse.<T>builder()
+                .code(1000)
+                .message("Success")
+                .build();
+    }
+
+    public static <T> ApiResponse<T> success(String message) {
+        return  ApiResponse.<T>builder()
+                .code(1000)
+                .message(message)
+                .build();
+    }
+    
+    public static <T> ApiResponse<T> success(T result, String message) {
+        return  ApiResponse.<T>builder()
+                .code(1000)
+                .message(message)
+                .result(result)
+                .build();
+    }
 
 }

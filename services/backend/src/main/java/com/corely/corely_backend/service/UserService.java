@@ -1,6 +1,5 @@
 package com.corely.corely_backend.service;
 
-import com.corely.corely_backend.dto.request.auth.ChangePasswordRequest;
 import com.corely.corely_backend.dto.request.auth.UpdateProfileRequest;
 import com.corely.corely_backend.dto.request.auth.UserCreationRequest;
 import com.corely.corely_backend.dto.request.auth.UserUpdateRequest;
@@ -18,6 +17,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.lang.NonNull;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,8 +33,11 @@ import java.util.UUID;
 public class UserService {
     UserRepository userRepository;
     RoleRepository roleRepository;
+
     PasswordEncoder passwordEncoder;
+
     UserMapper userMapper;
+
     SecurityUtils securityUtils;
 
     @Transactional
@@ -81,22 +84,9 @@ public class UserService {
         log.info("User {} deactivated own account", user.getId());
     }
 
-    @Transactional
-    public void changePassword(ChangePasswordRequest request) {
-        User user = getCurrentUser();
-        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword()))
-            throw new AppException(ErrorCode.INVALID_PASSWORD);
-        if (request.getOldPassword().equals(request.getNewPassword()))
-            throw new AppException(ErrorCode.NEW_PASSWORD_MUST_BE_DIFFERENT);
-        if (!request.getNewPassword().equals(request.getConfirmPassword()))
-            throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
-        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        userRepository.save(user);
-        log.info("User {} changed password", user.getId());
-    }
 
     @Transactional
-    public UserResponse updateUser(UUID userId, UserUpdateRequest request) {
+    public UserResponse updateUser(@NonNull UUID userId, UserUpdateRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
@@ -118,7 +108,7 @@ public class UserService {
     }
 
     @Transactional
-    public void deleteUser(UUID userId) {
+    public void deleteUser(@NonNull UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         if (!user.getIsActive()) {
@@ -130,7 +120,7 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserResponse getUser(UUID userId) {
+    public UserResponse getUser(@NonNull UUID userId) {
         return userMapper.toUserResponse(userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND)));
     }
