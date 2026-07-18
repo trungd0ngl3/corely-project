@@ -11,13 +11,14 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@Data
 public class ChangePasswordRequest {
 
-    @NotBlank(message = "OLD_PASSWORD_REQUIRED")
-    String oldPassword;
+    @NotBlank(message = "CURRENT_PASSWORD_REQUIRED")
+    String currentPassword;
 
     @NotBlank(message = "NEW_PASSWORD_REQUIRED")
-    @Size(min = 8, max = 100, message = "PASSWORD_INVALID_SIZE")
+    @Size(min = 8, max = 100)
     String newPassword;
 
     @NotBlank(message = "CONFIRM_PASSWORD_REQUIRED")

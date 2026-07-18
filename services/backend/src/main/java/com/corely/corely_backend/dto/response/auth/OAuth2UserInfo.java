@@ -1,4 +1,4 @@
-package com.corely.corely_backend.dto;
+package com.corely.corely_backend.dto.response.auth;
 
 import lombok.Builder;
 import lombok.Getter;

@@ -1,7 +1,10 @@
 package com.corely.corely_backend.entity;
 
 import com.corely.corely_backend.enums.OrderStatus;
+import com.corely.corely_backend.enums.PaymentMethod;
 import com.corely.corely_backend.enums.PaymentStatus;
+import com.corely.corely_backend.enums.ShippingMethod;
+
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -32,7 +35,7 @@ public class Order extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus;
 
-    private String paymentMethod;
+    private PaymentMethod paymentMethod;
 
     @Column(unique = true)
     private String orderCode;
@@ -40,7 +43,7 @@ public class Order extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String shippingAddress;
     
-    private String shippingMethod;
+    private ShippingMethod shippingMethod;
 
     @ManyToOne
     private User user;

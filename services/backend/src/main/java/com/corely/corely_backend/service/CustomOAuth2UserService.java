@@ -1,9 +1,11 @@
 package com.corely.corely_backend.service;
 
-import com.corely.corely_backend.configuration.CustomOAuth2User;
-import com.corely.corely_backend.dto.OAuth2UserInfo;
+import com.corely.corely_backend.recurity.CustomOAuth2User;
+import com.corely.corely_backend.dto.response.auth.OAuth2UserInfo;
 import com.corely.corely_backend.entity.User;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -14,10 +16,11 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
-    private static final String GOOGLE = "google";
-    private static final String FACEBOOK = "facebook";
-    private final UserService userService;
+    static String GOOGLE = "google";
+    static String FACEBOOK = "facebook";
+    AuthenticationService authenticationService;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest)
@@ -29,7 +32,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         OAuth2UserInfo userInfo = extractUserInfo(provider, oauth2User);
 
-        User user = userService.processOAuth2User(
+        User user = authenticationService.processOAuth2User(
                 userInfo.getEmail(),
                 userInfo.getName(),
                 userInfo.getAvatar(),

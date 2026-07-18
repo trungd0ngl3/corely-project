@@ -30,7 +30,12 @@ public class User extends BaseEntity {
 
     String fullName;
     String phone;
-    String avatarUrl;
+    
+    @Column(length = 500)
+    String avatarUrl;   
+
+    @Column(length = 200)
+    String avatarPublicId;
 
     LocalDate dateOfBirth;
 
@@ -43,7 +48,12 @@ public class User extends BaseEntity {
     Set<Role> roles;
 
     @Builder.Default
-    Boolean isActive = true;
+    @Column(nullable = false)
+    Boolean emailVerified = false;
+
+    @Builder.Default
+    @Column(nullable = false)
+    Boolean isActive = false;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     List<Address> addresses;

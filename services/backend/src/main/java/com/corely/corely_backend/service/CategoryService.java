@@ -45,7 +45,7 @@ public class CategoryService {
     @Transactional
     public CategoryResponse createCategory(CategoryRequest request) {
         if (categoryRepository.existsBySlug(generateSlug(request.getName())))
-            throw new AppException(ErrorCode.CATEGORY_EXISTED);
+            throw new AppException(ErrorCode.CATEGORY_ALREADY_EXISTS);
         
         Category category = categoryMapper.toCategory(request);
         category.setSlug(generateSlug(request.getName()));

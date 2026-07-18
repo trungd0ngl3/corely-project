@@ -5,11 +5,9 @@ import com.corely.corely_backend.dto.response.dashboard.RevenueChartResponse;
 import com.corely.corely_backend.service.DashboardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import com.corely.corely_backend.dto.response.ApiResponse;

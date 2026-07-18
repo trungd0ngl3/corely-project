@@ -21,7 +21,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -40,12 +42,12 @@ public class ProductService {
     ProductMapper productMapper;
     ProductVariantMapper productVariantMapper;
 
-    private static final String SYSTEM_STORE_SLUG = "corely";
+    static String SYSTEM_STORE_SLUG = "corely";
 
     @Transactional
     public ProductResponse createProduct(ProductCreationRequest request) {
         if (productRepository.existsBySku(request.getSku()))
-            throw new AppException(ErrorCode.PRODUCT_EXISTED);
+            throw new AppException(ErrorCode.PRODUCT_ALREADY_EXISTS);
 
         Store store = storeRepository.findBySlug(SYSTEM_STORE_SLUG)
                 .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
@@ -84,7 +86,7 @@ public class ProductService {
                     .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
             
             if (productRepository.existsBySkuAndIdNot(request.getSku(), id))
-                throw new AppException(ErrorCode.PRODUCT_EXISTED);
+                throw new AppException(ErrorCode.PRODUCT_ALREADY_EXISTS);
 
             productMapper.updateProduct(product, request);
             product.setCategory(request.getCategoryId() != null ? categoryRepository.findById(request.getCategoryId()).orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND)) : null);
@@ -142,10 +144,10 @@ public class ProductService {
             }
 
             if (request.getVariants() != null) {
-                java.util.Set<String> skus = new java.util.HashSet<>();
+                Set<String> skus = new HashSet<>();
                 product.setVariants(request.getVariants().stream().map(vr -> {
                     if (!skus.add(vr.getSku()) || productVariantRepository.existsBySku(vr.getSku()))
-                        throw new AppException(ErrorCode.PRODUCT_EXISTED);
+                        throw new AppException(ErrorCode.PRODUCT_ALREADY_EXISTS);
                     ProductVariant v = productVariantMapper.toProductVariant(vr);
                     v.setProduct(product);
                     return v;
@@ -170,16 +172,16 @@ public class ProductService {
                 java.util.Set<String> skus = new java.util.HashSet<>();
 
                 for (var vr : variantRequests) {
-                    if (!skus.add(vr.getSku())) throw new AppException(ErrorCode.PRODUCT_EXISTED);
+                    if (!skus.add(vr.getSku())) throw new AppException(ErrorCode.PRODUCT_ALREADY_EXISTS);
                     ProductVariant v;
                     if (vr.getId() != null && existingVariants.containsKey(vr.getId())) {
                         v = existingVariants.get(vr.getId());
                         if (productVariantRepository.existsBySkuAndIdNot(vr.getSku(), v.getId()))
-                            throw new AppException(ErrorCode.PRODUCT_EXISTED);
+                            throw new AppException(ErrorCode.PRODUCT_ALREADY_EXISTS);
                         productVariantMapper.updateProductVariant(v, vr);
                     } else {
                         if (productVariantRepository.existsBySku(vr.getSku()))
-                            throw new AppException(ErrorCode.PRODUCT_EXISTED);
+                            throw new AppException(ErrorCode.PRODUCT_ALREADY_EXISTS);
                         v = productVariantMapper.toProductVariant(vr);
                         v.setProduct(product);
                     }

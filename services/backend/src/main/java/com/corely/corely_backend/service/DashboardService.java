@@ -38,7 +38,8 @@ public class DashboardService {
                 long totalOrder = orderRepository.count();
                 long totalProducts = productRepository.count();
                 long totalCustomers = userRepository.count();
-                long pendingOrder = orderRepository.countByStatus(OrderStatus.PENDING);
+                long pendingOrder = orderRepository.countByStatus(OrderStatus.AWAITING_CONFIRMATION)
+                                + orderRepository.countByStatus(OrderStatus.PENDING_PAYMENT);
                 long completedOrder = orderRepository.countByStatus(OrderStatus.DELIVERED);
 
                 BigDecimal averageOrderValue = completedOrder > 0
