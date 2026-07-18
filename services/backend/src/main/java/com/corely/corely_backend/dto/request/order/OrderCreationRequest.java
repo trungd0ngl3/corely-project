@@ -8,6 +8,9 @@ import lombok.experimental.FieldDefaults;
 
 import java.util.UUID;
 
+import com.corely.corely_backend.enums.PaymentMethod;
+import com.corely.corely_backend.enums.ShippingMethod;
+
 @Data
 @Builder
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
@@ -20,8 +23,8 @@ public class OrderCreationRequest {
     String shippingAddress;
 
     @NotBlank(message = "SHIPPING_METHOD_REQUIRED")
-    String shippingMethod; // e.g., "STANDARD", "EXPRESS"
+    ShippingMethod shippingMethod; // e.g., "STANDARD", "EXPRESS"
 
     @NotBlank(message = "PAYMENT_METHOD_REQUIRED")
-    String paymentMethod; // e.g., "COD", "VNPAY"
+    PaymentMethod paymentMethod; // e.g., "COD", "VNPAY"
 }

@@ -23,4 +23,8 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     long countByStatus(com.corely.corely_backend.enums.OrderStatus status);
 
     List<Order> findTop10ByOrderByCreatedAtDesc();
+
+    java.util.Optional<Order> findByOrderCode(String orderCode);
+
+    boolean existsByOrderCode(String orderCode);
 }

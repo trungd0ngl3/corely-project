@@ -6,7 +6,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.*;
-import lombok.experimental.FieldDefaults;
 
 import java.time.Instant;
 
@@ -15,8 +14,6 @@ import java.time.Instant;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
-
 @Entity
 public class InvalidatedToken {
 

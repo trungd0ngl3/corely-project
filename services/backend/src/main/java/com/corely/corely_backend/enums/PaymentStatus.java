@@ -1,7 +1,8 @@
 package com.corely.corely_backend.enums;
 
 public enum PaymentStatus {
-    PENDING,
+    UNPAID,
+    PROCESSING,
     PAID,
     FAILED,
     REFUNDED

@@ -9,12 +9,12 @@ import com.corely.corely_backend.enums.OrderStatus;
 import com.corely.corely_backend.enums.PaymentStatus;
 import com.corely.corely_backend.exception.AppException;
 import com.corely.corely_backend.exception.ErrorCode;
+import com.corely.corely_backend.factory.OrderFactory;
 import com.corely.corely_backend.mapper.OrderMapper;
 import com.corely.corely_backend.repository.OrderRepository;
 import com.corely.corely_backend.repository.ProductRepository;
 import com.corely.corely_backend.repository.ProductVariantRepository;
 import com.corely.corely_backend.repository.StoreRepository;
-import com.corely.corely_backend.repository.UserRepository;
 import com.corely.corely_backend.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -22,7 +22,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.context.ApplicationEventPublisher;
+import com.corely.corely_backend.factory.OrderItemFactory;
+import com.corely.corely_backend.event.OrderCreatedEvent;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -35,13 +37,24 @@ import java.util.UUID;
 public class OrderService {
 
     OrderRepository orderRepository;
-    UserRepository userRepository;
     StoreRepository storeRepository;
     ProductRepository productRepository;
     ProductVariantRepository productVariantRepository;
+
     CartService cartService;
+    OrderTimelineService orderTimelineService;
+    OrderValidationService orderValidationService;
+    OrderPermissionService orderPermissionService;
+    OrderCalculatorService orderCalculatorService;
+    InventoryService inventoryService;
+
+    OrderFactory orderFactory;
+    OrderItemFactory orderItemFactory;
+
     OrderMapper orderMapper;
+
     SecurityUtils securityUtils;
+    ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public OrderResponse createOrder(OrderCreationRequest request) {
@@ -51,24 +64,12 @@ public class OrderService {
                 .orElseThrow(() -> new AppException(ErrorCode.STORE_NOT_FOUND));
 
         CartResponse cart = cartService.getCart();
+        orderValidationService.validateCart(cart);
+
         List<CartItemResponse> storeItems = cart.getItems();
+        Order order = orderFactory.create(request, user, store);
 
-        if (storeItems == null || storeItems.isEmpty()) {
-            throw new AppException(ErrorCode.CART_EMPTY); // Need to define this error code
-        }
-
-        BigDecimal totalAmount = BigDecimal.ZERO;
         List<OrderItem> orderItems = new ArrayList<>();
-
-        Order order = new Order();
-        order.setUser(user);
-        order.setStore(store);
-        order.setShippingAddress(request.getShippingAddress());
-        order.setShippingMethod(request.getShippingMethod());
-        order.setPaymentMethod(request.getPaymentMethod());
-        order.setStatus(OrderStatus.PENDING);
-        order.setPaymentStatus(PaymentStatus.PENDING);
-        order.setOrderCode(generateOrderCode());
 
         for (CartItemResponse itemResponse : storeItems) {
             Product product = productRepository.findById(itemResponse.getProductId())
@@ -80,59 +81,30 @@ public class OrderService {
                         .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
             }
 
-            if (!product.getIsActive() || (variant != null && !variant.getIsActive())) {
-                throw new AppException(ErrorCode.PRODUCT_NOT_AVAILABLE);
-            }
+            orderValidationService.validateProduct(product);
+            orderValidationService.validateVariant(variant);
 
-            BigDecimal currentPrice = (variant != null) ? variant.getPrice() : product.getPrice();
+            int availableStock = (variant != null) ? variant.getStockQuantity() : product.getStockQuantity();
+            orderValidationService.validateStock(availableStock, itemResponse.getQuantity());
 
-            if (variant != null) {
-                // Use PESSIMISTIC_WRITE via repository if possible, or @Version on entity
-                // For now, ensure we fetch fresh state
-                if (variant.getStockQuantity() < itemResponse.getQuantity()) {
-                    throw new AppException(ErrorCode.OUT_OF_STOCK);
-                }
-                variant.setStockQuantity(variant.getStockQuantity() - itemResponse.getQuantity());
-                productVariantRepository.save(variant);
-            } else {
-                if (product.getStockQuantity() < itemResponse.getQuantity()) {
-                    throw new AppException(ErrorCode.OUT_OF_STOCK);
-                }
-                product.setStockQuantity(product.getStockQuantity() - itemResponse.getQuantity());
-                productRepository.save(product);
-            }
-
-            OrderItem orderItem = new OrderItem();
-            orderItem.setOrder(order);
-            orderItem.setProduct(product);
-            orderItem.setVariant(variant);
-            orderItem.setQuantity(itemResponse.getQuantity());
-            orderItem.setPrice(currentPrice);
-            orderItem.setProductName(product.getName());
-            orderItem.setVariantName(variant != null ? variant.getName() : null);
-            orderItem.setImageUrl(product.getImages().isEmpty() ? null : String.valueOf(product.getImages().get(0)));
-            orderItem.setSku(variant != null ? variant.getSku() : product.getSku());
-
-            totalAmount = totalAmount.add(currentPrice.multiply(BigDecimal.valueOf(itemResponse.getQuantity())));
+            OrderItem orderItem = orderItemFactory.create(product, variant, itemResponse.getQuantity(), order);
             orderItems.add(orderItem);
         }
 
-        order.setItems(orderItems);
-        order.setSubtotal(totalAmount);
-        order.setTotalAmount(totalAmount);
+        BigDecimal subtotal = orderCalculatorService.calculateSubtotal(orderItems);
+        BigDecimal shippingFee = BigDecimal.ZERO;
+        BigDecimal discount = BigDecimal.ZERO;
+        BigDecimal totalAmount = orderCalculatorService.calculateTotal(subtotal, shippingFee, discount);
 
-        // Clear cart after commit
-        TransactionSynchronizationManager.registerSynchronization(
-                new org.springframework.transaction.support.TransactionSynchronization() {
-                    @Override
-                    public void afterCommit() {
-                        for (CartItemResponse item : storeItems) {
-                            cartService.removeFromCart(item.getProductId(), item.getVariantId());
-                        }
-                    }
-                });
+        orderFactory.finalizeOrder(order, orderItems, subtotal, shippingFee, discount, totalAmount);
+
+        inventoryService.deduct(orderItems);
 
         order = orderRepository.save(order);
+
+        orderTimelineService.recordStatusChange(order, null, order.getStatus(), "Order created");
+
+        eventPublisher.publishEvent(new OrderCreatedEvent(storeItems));
 
         return orderMapper.toOrderResponse(order);
     }
@@ -178,20 +150,20 @@ public class OrderService {
                 .stream()
                 .anyMatch(r -> r.getName().equals("ADMIN"));
 
-        if (!isAdmin) {
+        boolean isOwner = order.getUser().getId().equals(currentUser.getId());
+
+        if (!isAdmin && !isOwner) {
             throw new AppException(ErrorCode.FORBIDDEN);
         }
 
-        if (!order.getStatus().canTransitionTo(status)) {
-            throw new AppException(ErrorCode.INVALID_ORDER_STATUS_TRANSITION);
-        }
+        OrderStatus oldStatus = order.getStatus();
+        orderPermissionService.validateTransition(order, status, isAdmin);
 
         order.setStatus(status);
         order = orderRepository.save(order);
-        return orderMapper.toOrderResponse(order);
-    }
 
-    private String generateOrderCode() {
-        return "ORD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        orderTimelineService.recordStatusChange(order, oldStatus, status, "Status updated");
+
+        return orderMapper.toOrderResponse(order);
     }
 }
